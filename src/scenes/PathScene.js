@@ -11,10 +11,17 @@ export default class PathScene extends Phaser.Scene
     preload ()
     {
         this.load.image('golden', 'assets/golden.png');
+            
+        // Ajoutez cette ligne :
+        // 'backgroundKey' est la clé unique que vous choisissez.
+        // 'assets/images/background_td.png' est le chemin depuis le dossier 'public'.
+        this.load.image('backgroundKey', 'assets/level1.png');
     }
 
     // Dans src/scenes/PathScene.js, méthode create()
     create() {
+        let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
+
         this.graphics = this.add.graphics();
 
         // Utiliser les dimensions du jeu pour définir le chemin
@@ -48,6 +55,8 @@ export default class PathScene extends Phaser.Scene
         for (let i = 0; i < 32; i++)
             {
                 const ball = this.followers.create(0, -50, 'golden');
+
+                ball.setScale(0.05)
     
                 ball.setData('vector', new Phaser.Math.Vector2());
     
@@ -94,14 +103,3 @@ export default class PathScene extends Phaser.Scene
         }
     }
 }
-
-// const config = {
-//     type: Phaser.AUTO,
-//     width: 800,
-//     height: 600,
-//     backgroundColor: '#2d2d2d',
-//     parent: 'phaser-example',
-//     scene: PathScene
-// };
-
-// const game = new Phaser.Game(config);
