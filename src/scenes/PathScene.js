@@ -71,7 +71,7 @@ export default class PathScene extends Phaser.Scene
     {
         this.graphics.clear();
 
-        this.graphics.lineStyle(1, 0xffffff, 1);
+        this.graphics.lineStyle(1, 0xffffff, 0);
 
         this.path.draw(this.graphics);
 
