@@ -25,31 +25,27 @@ export default class PathScene extends Phaser.Scene
         this.graphics = this.add.graphics();
 
         // Utiliser les dimensions du jeu pour définir le chemin
-        const gameWidth = this.scale.width;  // ex: 390
-        const gameHeight = this.scale.height; // ex: 844
+        const gameWidth = this.scale.width;
+        const gameHeight = this.scale.height;
 
-        const startX = gameWidth * 0.1; // Point de départ X relatif
-        const endX = gameWidth * 0.9;   // Point d'arrivée X relatif
-        const startY = gameHeight * 0.1; // Point de départ Y relatif
-        const endY = gameHeight * 0.9;   // Point d'arrivée Y relatif
+        console.log(gameHeight);
+        console.log(gameWidth);
+
+        const startX = gameWidth * 0.5; // Point de départ X relatif
+        const startY = gameHeight * 0.85; // Point de départ Y relatif
+        const endX = gameWidth * 0.42;   // Point d'arrivée X relatif
+        const endY = gameHeight * 0.2;   // Point d'arrivée Y relatif
 
         // Recréez votre chemin en utilisant ces variables relatives
         // Exemple très simplifié (à adapter à votre logique de zig-zag) :
-        this.path = new Phaser.Curves.Path(startX, startY * 0.5); // Commence un peu en haut
-        this.path.lineTo(startX, startY);
-
-        const max = 8;
-        const segmentHeight = (endY - startY) / max;
-
-        for (let i = 0; i < max; i++) {
-            const currentY = startY + segmentHeight * (i + 1);
-            if (i % 2 === 0) {
-                this.path.lineTo(endX, currentY);
-            } else {
-                this.path.lineTo(startX, currentY);
-            }
-        }
-
+        this.path = new Phaser.Curves.Path(startX, startY); // Commence un peu en haut
+        this.path.lineTo(540,1850)
+        this.path.lineTo(330,1850)
+        this.path.lineTo(330,1320)
+        this.path.lineTo(750,1320)
+        this.path.lineTo(730,880)
+        this.path.lineTo(460,880)
+        this.path.lineTo(endX,endY)
         this.followers = this.add.group();
 
         for (let i = 0; i < 32; i++)
@@ -66,17 +62,9 @@ export default class PathScene extends Phaser.Scene
                     ease: 'Linear',
                     duration: 12000,
                     repeat: -1,
-                    delay: i * 100
+                    delay: i * 1000
                 });
             }
-        // this.path.lineTo(startX, endY + 50); // Ajuster la fin aussi si besoin
-
-        // ... (le reste du code create() pour les followers) ...
-
-        // IMPORTANT: vérifiez aussi où les followers sont créés initialement
-        // this.followers.create(startX, startY * 0.5, 'ball'); // Au lieu de (0, -50) ?
-
-        // ... (le reste du code create() pour les tweens) ...
     }
 
     update ()
