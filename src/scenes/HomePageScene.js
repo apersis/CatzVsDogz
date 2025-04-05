@@ -65,9 +65,8 @@ export default class HomePageScene extends Phaser.Scene {  // <-- Correction du 
             // Vous pouvez ajouter ici les actions pour chaque bouton
             console.log(texture + ' clicked');
             
-            // Exemple pour le bouton Play :
             if (texture === 'playBtn') {
-                this.scene.start('MainGameScene');
+                this.scene.start('PathScene');
             }
             if (texture === 'playBerliozBtn') {
                 this.scene.start('PianoScene');
