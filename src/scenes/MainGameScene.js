@@ -30,7 +30,7 @@ export default class MainGameScene extends Phaser.Scene {
 
         // 2. Afficher un texte de titre simple
         this.add.text(this.scale.width / 2, 50, 'Tower Defense - Mobile Setup', {
-            fontSize: '20px', // Ajuster la taille pour mobile
+            fontSize: '52px', // Ajuster la taille pour mobile
             fill: '#ffffff'
         }).setOrigin(0.5); // Centrer le texte horizontalement
 

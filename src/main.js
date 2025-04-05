@@ -2,11 +2,12 @@
 import Phaser from 'phaser';
 import BootScene from './scenes/BootScene';
 import MainGameScene from './scenes/MainGameScene';
+import PathScene from './scenes/PathScene';
 
 // Dimensions cibles pour un format mobile portrait (ex: ~iPhone 12/13 ratio)
 // Adaptez selon vos besoins (ex: 540x960 pour du 9:16 paysage)
-const MOBILE_WIDTH = 390;
-const MOBILE_HEIGHT = 844;
+const MOBILE_WIDTH = 1080;
+const MOBILE_HEIGHT = 2400;
 
 const config = {
     type: Phaser.AUTO, // Choisit WebGL si dispo, sinon Canvas
@@ -25,7 +26,7 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH // Centre le canvas de jeu
     },
     // Liste des scènes du jeu
-    scene: [BootScene, MainGameScene]
+    scene: [BootScene, MainGameScene, PathScene]
 };
 
 // Création de l'instance du jeu
