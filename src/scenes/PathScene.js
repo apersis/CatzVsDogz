@@ -1,93 +1,79 @@
-export default class PathScene extends Phaser.Scene
-{
+import Phaser from 'phaser';
+import Enemy from '../enemies/Enemy.js';
+
+export default class PathScene extends Phaser.Scene {
     constructor() {
-        super('PathScene'); // Clé unique pour cette scène
+        super('PathScene');
+        this.graphics = null;
+        this.path = null;
+        this.enemies = null; // Groupe pour nos ennemis
     }
 
-    followers;
-    graphics;
-    path;
-
-    preload ()
-    {
+    preload() {
         this.load.image('golden', 'assets/golden.png');
-            
-        // Ajoutez cette ligne :
-        // 'backgroundKey' est la clé unique que vous choisissez.
-        // 'assets/images/background_td.png' est le chemin depuis le dossier 'public'.
         this.load.image('backgroundKey', 'assets/level1.png');
+        this.load.image('chihuahua', 'assets/chihuahua.png');
+        this.load.image('basset', 'assets/basset.png');
     }
 
-    // Dans src/scenes/PathScene.js, méthode create()
     create() {
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
 
         this.graphics = this.add.graphics();
+        this.path = this.createPath();
 
-        // Utiliser les dimensions du jeu pour définir le chemin
-        const gameWidth = this.scale.width;
-        const gameHeight = this.scale.height;
+        this.enemies = this.add.group();
 
-        console.log(gameHeight);
-        console.log(gameWidth);
-
-        const startX = gameWidth * 0.5; // Point de départ X relatif
-        const startY = gameHeight * 0.85; // Point de départ Y relatif
-        const endX = gameWidth * 0.42;   // Point d'arrivée X relatif
-        const endY = gameHeight * 0.2;   // Point d'arrivée Y relatif
-
-        // Recréez votre chemin en utilisant ces variables relatives
-        // Exemple très simplifié (à adapter à votre logique de zig-zag) :
-        this.path = new Phaser.Curves.Path(startX, startY); // Commence un peu en haut
-        this.path.lineTo(540,1850)
-        this.path.lineTo(330,1850)
-        this.path.lineTo(330,1320)
-        this.path.lineTo(750,1320)
-        this.path.lineTo(730,880)
-        this.path.lineTo(460,880)
-        this.path.lineTo(endX,endY)
-        this.followers = this.add.group();
-
-        for (let i = 0; i < 32; i++)
-            {
-                const ball = this.followers.create(0, -50, 'golden');
-
-                ball.setScale(0.05)
-    
-                ball.setData('vector', new Phaser.Math.Vector2());
-    
-                this.tweens.add({
-                    targets: ball,
-                    z: 1,
-                    ease: 'Linear',
-                    duration: 12000,
-                    repeat: -1,
-                    delay: i * 1000
-                });
-            }
+        // Exemple d'utilisation de la fonction pour créer 10 ennemis aléatoires
+        this.createRandomEnemies(10);
     }
 
-    update ()
-    {
+    createPath() {
+        const gameWidth = this.scale.width;
+        const gameHeight = this.scale.height;
+        const startX = gameWidth * 0.5;
+        const startY = gameHeight * 0.85;
+        const endX = gameWidth * 0.42;
+        const endY = gameHeight * 0.2;
+
+        const path = new Phaser.Curves.Path(startX, startY);
+        path.lineTo(540, 1850);
+        path.lineTo(330, 1850);
+        path.lineTo(330, 1320);
+        path.lineTo(750, 1320);
+        path.lineTo(730, 880);
+        path.lineTo(460, 880);
+        path.lineTo(endX, endY);
+        return path;
+    }
+
+    createRandomEnemies(numberOfEnemies) {
+        const enemyTypes = ['golden', 'chihuahua', 'basset']; // Liste des clés d'images d'ennemis
+        const minHealth = 50;
+        const maxHealth = 150;
+        const minSpeed = 30;
+        const maxSpeed = 70;
+
+        for (let i = 0; i < numberOfEnemies; i++) {
+            const startPoint = this.path.getPoint(0);
+            const randomTexture = Phaser.Math.RND.pick(enemyTypes);
+            const randomHealth = Phaser.Math.RND.integerInRange(minHealth, maxHealth);
+            const randomSpeed = Phaser.Math.RND.integerInRange(minSpeed, maxSpeed);
+
+            const enemy = new Enemy(this, startPoint.x, startPoint.y, randomTexture, randomHealth, randomSpeed);
+            enemy.setScale(0.5); // Réduit la taille de l'image de moitié (ajustez la valeur selon vos besoins)
+            enemy.setPath(this.path);
+            this.enemies.add(enemy);
+        }
+    }
+
+    update() {
         this.graphics.clear();
-
         this.graphics.lineStyle(1, 0xffffff, 0);
-
         this.path.draw(this.graphics);
 
-        const balls = this.followers.getChildren();
-
-        for (let i = 0; i < balls.length; i++)
-        {
-            const t = balls[i].z;
-            const vec = balls[i].getData('vector');
-
-            //  The vector is updated in-place
-            this.path.getPoint(t, vec);
-
-            balls[i].setPosition(vec.x, vec.y);
-
-            balls[i].setDepth(balls[i].y);
-        }
+        this.enemies.getChildren().forEach(enemy => {
+            enemy.update(this.time.now, this.delta);
+        });
     }
 }
