@@ -22,6 +22,35 @@ export default class CreditScene extends Phaser.Scene {  // <-- Correction du no
             'background'
         ).setOrigin(0.5);
 
+
+        const title = this.add.text(
+                this.cameras.main.centerX,
+                900, // Position Y ajustable
+                'Game brought to life by:\n\n',
+                { 
+                    fontFamily: 'McLaren',
+                    fontSize: '4rem',
+                    color: '#FFFFFF',
+                    fontWeight: 'bold',
+                    align: 'center'
+                }
+            ).setOrigin(0.5);
+
+        const content = this.add.text(
+            this.cameras.main.centerX, // Position X centrée
+            1500, // Position Y centrée
+            'Allan BOUGUERAB\n \nRaphaëlle MENARD\n \nJohan MONS\n\nTom LE ROUX\n \nEloïc LESELLIER\n\n' +
+            'Assets handcrafted by:\nMorgane BOILEAU\n\n' +
+            'Music:\nPlease go away by The Kiffness', 
+            { 
+                fontFamily: 'McLaren',
+                fontSize: '3rem',
+                color: '#FFFFFF',
+                align: 'center',
+                lineSpacing: 15
+            }
+        ).setOrigin(0.5); // Centrage du texte
+
         // Ajustement de la taille
         const scaleX = this.cameras.main.width / bg.width;
         const scaleY = this.cameras.main.height / bg.height;
@@ -67,4 +96,5 @@ export default class CreditScene extends Phaser.Scene {  // <-- Correction du no
 
         return btn;
     }
+
 }
