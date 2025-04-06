@@ -1,18 +1,44 @@
+// src/scenes/PathScene.js
+import Phaser from "phaser";
+import Enemy from "../enemies/Enemy.js";
+
+// Constantes
+const ENEMY_SPAWN_DELAY = 800;
+const INITIAL_PLAYER_LIFE = 9;
+
 export default class PathScene extends Phaser.Scene {
   constructor() {
     super("PathScene");
-    this.playerLife = 9;
-    this.lifeText = null;
-    this.path = null;
+
+    // Propriétés du jeu
     this.graphics = null;
-    this.dogsGroup = null;
+    this.path = null;
+    this.enemies = null;
+    this.enemiesToSpawn = [];
+
+    // État du jeu
+    this.playerLife = INITIAL_PLAYER_LIFE;
+    this.lifeSprites = [];
+    this.isGameOver = false;
+    this.spawnTimer = null;
+    this.gamePaused = false; // Nouvelle propriété pour suivre l'état de la pause
+    this.enemySpeeds = new Map(); // Nouvelle map pour stocker les vitesses des ennemis
+    this.spawnDelay = ENEMY_SPAWN_DELAY; // Nouvelle propriété pour stocker le délai de spawn
+
+    // Compteur de particules
     this.counter = 0;
     this.counterText = null;
+    this.counterInterval = null;
   }
 
   preload() {
+    // Assets
     this.load.image("golden", "assets/golden.png");
     this.load.image("backgroundKey", "assets/level1.png");
+    this.load.image("chihuahua", "assets/chihuahua.png");
+    this.load.image("basset", "assets/basset.png");
+    this.load.image("lifeFull", "assets/pleinvie.png");
+    this.load.image("lifeEmpty", "assets/videvi.png");
     this.load.image("retourBtn", "assets/retour.png");
     this.load.image("lancerBtn", "assets/lancer.png");
     this.load.image("pauseBtn", "assets/waitButton.png");
@@ -20,61 +46,58 @@ export default class PathScene extends Phaser.Scene {
 
   create() {
     // Setup de base
-    let bg = this.add.image(0, 0, "backgroundKey").setOrigin(0, 0);
+    this.add.image(0, 0, "backgroundKey").setOrigin(0, 0);
 
-    // Texte des vies
-    this.lifeText = this.add
-      .text(30, 30, `Vies: ${this.playerLife}`, {
-        fontSize: "32px",
-        fill: "#FF0000",
-        stroke: "#000",
-        strokeThickness: 4,
-      })
-      .setDepth(1000);
+    // Affichage des vies (coeurs)
+    this.setupLifeDisplay();
 
-    // Setup du chemin et des chiens
+    // Chemin et ennemis
     this.graphics = this.add.graphics();
-    const gameWidth = this.scale.width;
-    const gameHeight = this.scale.height;
+    this.path = this.createPath();
+    this.enemies = this.add.group({
+      classType: Enemy,
+      runChildUpdate: true,
+    });
 
-    this.path = new Phaser.Curves.Path(540, gameHeight * 0.82);
-    this.path
-      .lineTo(540, 1850)
-      .lineTo(330, 1850)
-      .lineTo(330, 1320)
-      .lineTo(750, 1320)
-      .lineTo(730, 880)
-      .lineTo(460, 880)
-      .lineTo(gameWidth * 0.42, gameHeight * 0.2);
+    // Événements
+    this.events.on("enemyReachedEnd", this.handleEnemyReachedEnd, this);
 
-    this.dogsGroup = this.add.group();
-    const startPoint = this.path.getStartPoint();
+    // Vague d'ennemis
+    this.enemiesToSpawn = this.generateEnemyQueue(10);
+    this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
 
-    for (let i = 0; i < 32; i++) {
-      const dog = this.dogsGroup.create(startPoint.x, startPoint.y, "golden");
-      dog
-        .setAlpha(0)
-        .setScale(0.05)
-        .setData("vector", new Phaser.Math.Vector2());
+    // Interface
+    this.createButton("retourBtn", 0.2, 0.96);
+    this.createButton("pauseBtn", 0.75, 0.96); // Ajout du bouton pause
+    this.createButton("lancerBtn", 0.9, 0.96); // Ajout du bouton play
+    this.setupCounter();
+  }
 
-      this.tweens.add({
-        targets: dog,
-        z: 1,
-        ease: "Linear",
-        duration: 12000,
-        repeat: -1,
-        delay: i * 1000,
-      });
+  setupLifeDisplay() {
+    const lifeStartX = 730;
+    const lifeStartY = 40;
+    const lifeSpacingX = 100;
+    const lifeSpacingY = 50;
+
+    for (let i = 0; i < INITIAL_PLAYER_LIFE / 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const x = lifeStartX + j * lifeSpacingX;
+        const y = lifeStartY + i * lifeSpacingY;
+        const lifeSprite = this.add
+          .image(x, y, "lifeFull")
+          .setOrigin(0, 0.5)
+          .setDepth(1000)
+          .setScale(0.04);
+        this.lifeSprites.push(lifeSprite);
+      }
     }
+  }
 
-    // Boutons
-    this.createButton("retourBtn", 0.2, 0.95);
-
-    // Compteur (modifié)
+  setupCounter() {
     this.counterText = this.add
       .text(
-        this.cameras.main.width * 0.49,
-        this.cameras.main.height * 0.96,
+        this.cameras.main.width * 0.5,
+        this.cameras.main.height * 0.98,
         `Particules: ${this.counter}`,
         {
           fontSize: "28px",
@@ -83,11 +106,10 @@ export default class PathScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
-    // Timer qui ajoute +10 toutes les 0.1s
-    this.time.addEvent({
-      delay: 10,
+    this.counterInterval = this.time.addEvent({
+      delay: 10, // 0.1 seconde
       callback: () => {
-        this.counter += 1112;
+        this.counter += 1231;
         this.counterText.setText(`Particules: ${this.counter}`);
       },
       callbackScope: this,
@@ -117,48 +139,145 @@ export default class PathScene extends Phaser.Scene {
       .on("pointerdown", () => {
         if (texture === "retourBtn") {
           this.scene.start("HomePageScene");
+        } else if (texture === "pauseBtn") {
+          this.pauseGame();
+        } else if (texture === "lancerBtn") {
+          this.resumeGame();
         }
       });
 
     return btn;
   }
 
-  update() {
-    // Dessin du chemin
-    this.graphics.clear().lineStyle(1, 0xffffff, 0);
-    this.path.draw(this.graphics);
+  createPath() {
+    const gameHeight = this.scale.height;
+    const path = new Phaser.Curves.Path(540, gameHeight * 0.82);
 
-    // Gestion des chiens
-    this.dogsGroup.getChildren().forEach((dog) => {
-      if (!dog.active) return;
+    path
+      .lineTo(540, 1850)
+      .lineTo(330, 1850)
+      .lineTo(330, 1320)
+      .lineTo(750, 1320)
+      .lineTo(730, 880)
+      .lineTo(460, 880)
+      .lineTo(460, gameHeight * 0.23);
 
-      const t = dog.z;
-      const vec = dog.getData("vector");
-      this.path.getPoint(t, vec);
+    return path;
+  }
 
-      dog.setPosition(vec.x, vec.y).setDepth(dog.y);
+  generateEnemyQueue(numberOfEnemies) {
+    const enemyTypes = [
+      { type: "chihuahua", texture: "chihuahua", health: 30, speed: 120 },
+      { type: "golden", texture: "golden", health: 50, speed: 90 },
+      { type: "basset", texture: "basset", health: 100, speed: 60 },
+    ];
 
-      if (dog.alpha === 0 && t > 0) dog.setAlpha(1);
+    return Array(numberOfEnemies)
+      .fill()
+      .map(() => {
+        const randomType = Phaser.Math.RND.pick(enemyTypes);
+        return {
+          texture: randomType.texture,
+          health: randomType.health,
+          speed: randomType.speed,
+        };
+      });
+  }
 
-      if (t >= 1.0) {
-        this.playerLife -= 1;
-        this.lifeText.setText(`Vies: ${this.playerLife}`);
-        dog.destroy();
+  startEnemySpawnProcess(delayBetweenSpawns) {
+    if (this.enemiesToSpawn.length === 0 || this.isGameOver) {
+      if (this.spawnTimer) this.spawnTimer.remove();
+      return;
+    }
 
-        if (this.playerLife <= 0) {
-          this.add
-            .text(this.scale.width / 2, this.scale.height / 2, "GAME OVER", {
-              fontSize: "64px",
-              fill: "#ff0000",
-              stroke: "#000",
-              strokeThickness: 6,
-            })
-            .setOrigin(0.5)
-            .setDepth(1000);
+    const nextEnemyData = this.enemiesToSpawn.shift();
+    this.spawnSingleEnemy(
+      nextEnemyData.texture,
+      nextEnemyData.health,
+      nextEnemyData.speed
+    );
 
-          this.scene.pause();
-        }
+    this.spawnTimer = this.time.delayedCall(
+      delayBetweenSpawns,
+      () => {
+        this.startEnemySpawnProcess(delayBetweenSpawns);
+      },
+      [],
+      this
+    );
+  }
+
+  spawnSingleEnemy(texture, health, speed) {
+    const enemy = this.enemies.create(0, 0, texture);
+    enemy.health = health;
+    enemy.maxHealth = health;
+    enemy.moveSpeed = speed;
+    enemy.setScale(0.05);
+    enemy.setPath(this.path);
+  }
+
+  handleEnemyReachedEnd(enemy) {
+    if (this.isGameOver || !enemy?.active) return;
+
+    if (this.playerLife > 0) {
+      this.playerLife -= 1;
+
+      if (this.lifeSprites[this.playerLife]) {
+        this.lifeSprites[this.playerLife].setTexture("lifeEmpty");
       }
+
+      if (this.playerLife <= 0) {
+        this.triggerGameOver();
+      }
+    }
+  }
+
+  triggerGameOver() {
+    this.isGameOver = true;
+    if (this.spawnTimer) this.spawnTimer.remove();
+    if (this.counterInterval) this.counterInterval.destroy();
+
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2, "GAME OVER", {
+        fontSize: "64px",
+        fill: "#ff0000",
+        stroke: "#000",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(2000);
+
+    this.scene.pause();
+  }
+
+  pauseGame() {
+    if (this.gamePaused) return;
+    this.gamePaused = true;
+    this.enemies.getChildren().forEach((enemy) => {
+      this.enemySpeeds.set(enemy, enemy.moveSpeed);
+      enemy.moveSpeed = 0;
     });
+    // Arrêter le timer de spawn
+    if (this.spawnTimer) {
+      this.spawnTimer.remove();
+      this.spawnTimer = null;
+    }
+  }
+
+  resumeGame() {
+    if (!this.gamePaused) return;
+    this.gamePaused = false;
+    this.enemies.getChildren().forEach((enemy) => {
+      enemy.moveSpeed = this.enemySpeeds.get(enemy);
+    });
+    // Redémarrer le timer de spawn
+    if (!this.spawnTimer) {
+      this.startEnemySpawnProcess(this.spawnDelay);
+    }
+  }
+
+  update() {
+    if (this.isGameOver) return;
+    this.graphics.clear();
   }
 }
