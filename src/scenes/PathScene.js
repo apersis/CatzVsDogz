@@ -6,6 +6,7 @@ import Tower from '../towers/Tower.js';
 // --- Constantes ---
 const ENEMY_SPAWN_DELAY = 800;
 const INITIAL_PLAYER_LIFE = 9;
+const INITIAL_PLAYER_MONEY = 400; // Argent de départ
 
 export default class PathScene extends Phaser.Scene {
     constructor() {
@@ -19,8 +20,10 @@ export default class PathScene extends Phaser.Scene {
         this.lifeSprites = [];
         this.isGameOver = false;
         this.spawnTimer = null;
-        this.selectedTowerData = null; // Pour stocker les données de la tour sélectionnée
-        this.placementLocations = []; // Pour stocker les emplacements de placement
+        this.selectedTowerData = null;
+        this.placementLocations = [];
+        this.playerMoney = INITIAL_PLAYER_MONEY; // Ajout de l'argent du joueur
+        this.moneyText = null; // Pour afficher l'argent
     }
 
     preload() {
@@ -33,9 +36,9 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('backgroundKey', 'assets/level1.png');
         this.load.image('lifeFull', 'assets/pleinvie.png');
         this.load.image('lifeEmpty', 'assets/videvi.png');
-        this.load.image('entrechat', 'assets/entrechat.png'); // Image pour le bouton de la tour 1
-        this.load.image('felintion', 'assets/felintion.png'); // Image pour le bouton de la tour 2
-        this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png'); // Image pour le bouton de la tour 3
+        this.load.image('entrechat', 'assets/entrechat.png');
+        this.load.image('felintion', 'assets/felintion.png');
+        this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png');
     }
 
     create() {
@@ -65,9 +68,7 @@ export default class PathScene extends Phaser.Scene {
             { x: 570, y: 775 },
             { x: 340, y: 775 }
         ];
-        
 
-        // --- Création des emplacements interactifs ---
         this.placementLocations.forEach(location => {
             const placementZone = this.add.rectangle(location.x, location.y, 64, 64, 0x888888, 0.5)
                 .setOrigin(0.5)
@@ -80,73 +81,98 @@ export default class PathScene extends Phaser.Scene {
         let buttonY = this.scale.height - 50;
         const buttonSpacing = 40;
 
-        // --- Création du bouton pour la tour 1 ---
-        const entrechat = this.add.image(buttonX -725, buttonY -100, 'entrechat')
+        const entrechat = this.add.image(buttonX - 725, buttonY - 100, 'entrechat')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'skin_entrechat', // Tu peux changer la texture si tu en as une différente
+                    texture: 'skin_entrechat',
                     range: 300,
-                    damage: 50, // Gros dégâts
-                    attackRate: 2500, // Très faible vitesse d'attaque (2.5 secondes)
-                    cost: 150, // Coût élevé
+                    damage: 50,
+                    attackRate: 2500,
+                    cost: 150,
                 };
+                console.log('Tour Entrechat sélectionnée (coût 150).');
             });
         entrechat.setDepth(2);
 
-        // --- Création du bouton pour la tour 2 ---
-        const felintion = this.add.image(buttonX -425 , buttonY -100, 'felintion')
+        const felintion = this.add.image(buttonX - 425, buttonY - 100, 'felintion')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'skin_felintion', // Tu peux changer la texture
-                    range: 600, // Très grande portée
-                    damage: 5, // Très faibles dégâts
-                    attackRate: 500, // Très haute vitesse d'attaque (0.1 seconde)
-                    cost: 180, // Coût élevé
+                    texture: 'skin_felintion',
+                    range: 600,
+                    damage: 5,
+                    attackRate: 500,
+                    cost: 180,
                 };
+                console.log('Tour Felintion sélectionnée (coût 180).');
             });
         felintion.setDepth(2);
 
-        // --- Création du bouton pour la tour 3 ---
-        const langue_rapeuse = this.add.image(buttonX -125, buttonY-100, 'langue_rapeuse')
+        const langue_rapeuse = this.add.image(buttonX - 125, buttonY - 100, 'langue_rapeuse')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'skin_langue_rapeuse', // Tu peux changer la texture
-                    range: 150, // Très faible portée
-                    damage: 40, // Gros dégâts
-                    attackRate: 2000, // Très faible vitesse d'attaque (2 secondes)
-                    cost: 80, // Coût moyen
+                    texture: 'skin_langue_rapeuse',
+                    range: 150,
+                    damage: 40,
+                    attackRate: 2000,
+                    cost: 80,
                 };
+                console.log('Tour Langue Rapeuse sélectionnée (coût 80).');
             });
         langue_rapeuse.setDepth(2);
 
         this.createLifeDisplay();
         this.events.on('enemyReachedEnd', this.handleEnemyReachedEnd, this);
+        this.events.on('enemyDied', this.handleEnemyDied, this); // Écoute l'événement de mort de l'ennemi
         this.enemiesToSpawn = this.generateEnemyQueue(10);
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
+
+        // --- Affichage de l'argent du joueur ---
+        this.moneyText = this.add.text(20, this.scale.height - 30, `Argent: ${this.playerMoney}`, {
+            fontSize: '20px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 2
+        }).setDepth(1000);
     }
 
     handlePlacementClick(x, y) {
         if (this.selectedTowerData) {
             const { texture, range, damage, attackRate, cost } = this.selectedTowerData;
-            const newTower = new Tower(this, x, y, texture, range, damage, attackRate, cost, this.enemies);
-            newTower.setScale(0.07);
-            this.towers.add(newTower);
-            this.selectedTowerData = null; // Réinitialiser la sélection après placement
-            console.log('Tour placée !');
-            // Optionnellement, désactiver l'emplacement après placement si on ne veut qu'une tour par emplacement
-            // placementZone.disableInteractive();
+            if (this.playerMoney >= cost) {
+                this.playerMoney -= cost;
+                this.updateMoneyDisplay();
+                const newTower = new Tower(this, x, y, texture, range, damage, attackRate, cost, this.enemies);
+                newTower.setScale(0.07);
+                this.towers.add(newTower);
+                this.selectedTowerData = null;
+                console.log(`Tour placée ! Argent restant: ${this.playerMoney}`);
+            } else {
+                console.log("Pas assez d'argent pour placer cette tour.");
+                // Optionnellement, afficher un message à l'utilisateur
+            }
         } else {
             console.log('Aucune tour sélectionnée pour le placement.');
         }
+    }
+
+    handleEnemyDied(enemy) {
+        const reward = enemy.reward || 10; // Récompense par défaut de 10 pièces
+        this.playerMoney += reward;
+        this.updateMoneyDisplay();
+        console.log(`Ennemi éliminé, argent gagné: ${reward}. Argent total: ${this.playerMoney}`);
+    }
+
+    updateMoneyDisplay() {
+        this.moneyText.setText(`Argent: ${this.playerMoney}`);
     }
 
     createLifeDisplay() {
@@ -196,14 +222,14 @@ export default class PathScene extends Phaser.Scene {
 
     generateEnemyQueue(numberOfEnemies) {
         const enemyTypes = [
-            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120 },
-            { type: 'golden', texture: 'golden', health: 50, speed: 90 },
-            { type: 'basset', texture: 'basset', health: 100, speed: 60 }
+            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120, reward: 10 }, // Ajout de la récompense
+            { type: 'golden', texture: 'golden', health: 50, speed: 90, reward: 20 },
+            { type: 'basset', texture: 'basset', health: 100, speed: 60, reward: 30 }
         ];
         const queue = [];
         for (let i = 0; i < numberOfEnemies; i++) {
             const randomType = Phaser.Math.RND.pick(enemyTypes);
-            queue.push({ texture: randomType.texture, health: randomType.health, speed: randomType.speed });
+            queue.push({ texture: randomType.texture, health: randomType.health, speed: randomType.speed, reward: randomType.reward });
         }
         console.log("Enemy queue generated:", queue);
         return queue;
@@ -216,19 +242,20 @@ export default class PathScene extends Phaser.Scene {
             return;
         }
         const nextEnemyData = this.enemiesToSpawn.shift();
-        this.spawnSingleEnemy(nextEnemyData.texture, nextEnemyData.health, nextEnemyData.speed);
+        this.spawnSingleEnemy(nextEnemyData.texture, nextEnemyData.health, nextEnemyData.speed, nextEnemyData.reward); // Passe la récompense
         this.spawnTimer = this.time.delayedCall(delayBetweenSpawns, () => {
             this.startEnemySpawnProcess(delayBetweenSpawns);
         }, [], this);
     }
 
-    spawnSingleEnemy(texture, health, speed) {
+    spawnSingleEnemy(texture, health, speed, reward) {
         const enemy = this.enemies.create(0, 0, texture);
         enemy.health = health;
         enemy.maxHealth = health;
         enemy.moveSpeed = speed;
         enemy.setScale(0.05);
         enemy.setPath(this.path);
+        enemy.reward = reward; // Assigner la récompense à l'ennemi
     }
 
     handleEnemyReachedEnd(enemy) {
