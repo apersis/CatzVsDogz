@@ -10,8 +10,9 @@ export default class SettingsScene extends Phaser.Scene {
         this.load.image('retourBtn', 'assets/retour.png');
 
         //Remplacer par les bons assets
-        this.load.image('btnNormal', 'assets/patteIcon.png'); // Level easy
-        this.load.image('btnActive', 'assets/morsureIcon.png'); // Level hard au clic
+        this.load.image('difficulte', 'assets/difficulte.png');
+        this.load.image('btnNormal', 'assets/easy.png'); // Level easy
+        this.load.image('btnActive', 'assets/hard.png'); // Level hard au clic
         console.log('SettingsScene: preload');
     }
 
@@ -25,11 +26,24 @@ export default class SettingsScene extends Phaser.Scene {
             'background'
         ).setOrigin(0.5);
 
-        // Ajustement de la taille
+        // Ajustement du background
         const scaleX = this.cameras.main.width / bg.width;
         const scaleY = this.cameras.main.height / bg.height;
         const scale = Math.max(scaleX, scaleY);
         bg.setScale(scale).setScrollFactor(0);  
+
+        const difficulte = this.add.image(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY*0.8,
+            'difficulte'
+        ).setOrigin(0.5);
+
+        // Ajustement de la taille de l'image difficulté
+        const diffScale = Math.min(
+        (this.cameras.main.width * 0.8) / difficulte.width,
+        (this.cameras.main.height * 0.2) / difficulte.height
+    );
+    difficulte.setScale(diffScale);
 
         this.createButton('retourBtn', 0.2, 0.90);  
 
