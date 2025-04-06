@@ -26,7 +26,7 @@ export default class PathScene extends Phaser.Scene {
     preload() {
         // Chargement des images nécessaires
         this.load.image('golden', 'assets/golden.png');
-        this.load.image('backgroundKey', 'assets/level1.png');
+        this.load.image('backgroundKey', 'assets/cuisine.png');
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
         // Charge ici d'autres assets (tours, sons, etc.)
@@ -46,11 +46,12 @@ export default class PathScene extends Phaser.Scene {
         const lifeStartY = 40; // Position Y des coeurs
         const lifeSpacingX = 100; // Espace entre chaque coeur (ajustez selon la taille de votre sprite)
         const lifeSpacingY = 50; // Espace entre chaque coeur (ajustez selon la taille de votre sprite)
-        const initialLives = this.playerLife; // Nombre de vies au départ
 
         this.lifeSprites = []; // Vider le tableau au cas où la scène est recréée
 
-        for (let i = 0; i < initialLives / 3; i++) {
+        this.playerLife = INITIAL_PLAYER_LIFE;
+
+        for (let i = 0; i < this.playerLife / 3; i++) {
             for (let j = 0; j < 3; j++){
                 // Calculer la position X de chaque coeur
                 const x = lifeStartX + j * lifeSpacingX;
@@ -87,6 +88,8 @@ export default class PathScene extends Phaser.Scene {
         // Génère la liste des ennemis à faire apparaître pour cette vague
         this.enemiesToSpawn = this.generateEnemyQueue(10); // Génère 10 ennemis
 
+        console.log(this.enemiesToSpawn);
+
         // --- Lancement du processus de spawn ---
         // Commence à faire apparaître les ennemis selon le délai défini
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
@@ -95,7 +98,7 @@ export default class PathScene extends Phaser.Scene {
     createPath() {
         const gameWidth = this.scale.width;
         const gameHeight = this.scale.height;
-        const startX = 540; // TODO: Adapter !
+        const startX = 540; 
         // *** MODIFICATION startY ***
         const startY = gameHeight * 0.82; // Modifié de 0.85 à 0.82
         // *** FIN MODIFICATION startY ***
@@ -123,9 +126,9 @@ export default class PathScene extends Phaser.Scene {
     generateEnemyQueue(numberOfEnemies) {
         // Définit les types d'ennemis possibles avec leurs caractéristiques
         const enemyTypes = [
-            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120 },
-            { type: 'golden',    texture: 'golden',    health: 50, speed: 90 },
-            { type: 'basset',    texture: 'basset',    health: 100, speed: 60 }
+            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 520 },
+            { type: 'golden',    texture: 'golden',    health: 50, speed: 490 },
+            { type: 'basset',    texture: 'basset',    health: 100, speed: 460 }
         ];
         const queue = [];
 
@@ -140,7 +143,6 @@ export default class PathScene extends Phaser.Scene {
                 // Note : On ne calcule plus le 'delay' ici, on utilisera un délai fixe entre chaque spawn
             });
         }
-        console.log("Enemy queue generated:", queue);
         return queue;
     }
 
@@ -152,7 +154,6 @@ export default class PathScene extends Phaser.Scene {
     startEnemySpawnProcess(delayBetweenSpawns) {
         // S'arrête s'il n'y a plus d'ennemis à spawner ou si le jeu est terminé
         if (this.enemiesToSpawn.length === 0 || this.isGameOver) {
-             console.log("Spawning finished or game over.");
              if (this.spawnTimer) this.spawnTimer.remove(); // Nettoie le timer
              return;
         }
@@ -199,9 +200,12 @@ export default class PathScene extends Phaser.Scene {
      */
     handleEnemyReachedEnd(enemy) {
         // Ignore si le jeu est fini ou si l'ennemi n'est plus valide/actif
+        console.log(this.playerLife);
+        console.log(enemy);
         if (this.isGameOver || !enemy || !enemy.active) {
             return;
         }
+
 
         // 2. Diminuer la vie (seulement si > 0)
         if (this.playerLife > 0) {
@@ -212,19 +216,13 @@ export default class PathScene extends Phaser.Scene {
             // (si vie=8, on change le sprite à l'index 8, qui est le 9ème coeur)
             if (this.lifeSprites[this.playerLife]) { // Vérifie que le sprite existe à cet index
                 this.lifeSprites[this.playerLife].setTexture('lifeEmpty'); // Change la texture !
-                console.log(`Vie perdue. Sprite ${this.playerLife} changé.`);
             } else {
                 console.warn(`Sprite de vie à l'index ${this.playerLife} non trouvé.`);
             }
 
             // 4. Vérifier si Game Over (la vie est maintenant à 0 ou moins)
             if (this.playerLife <= 0) {
-                console.log("GAME OVER SIMPLE!");
-                this.scene.pause();
-                // Afficher Game Over Text (avec Z-index élevé)
-                this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', stroke: '#000', strokeThickness: 6 })
-                    .setOrigin(0.5)
-                    .setDepth(1000); // Z-index élevé
+                this.triggerGameOver()
             }
         }
     }
@@ -233,35 +231,10 @@ export default class PathScene extends Phaser.Scene {
      * Déclenche la fin de la partie.
      */
     triggerGameOver() {
-        this.isGameOver = true; // Met le flag à true pour arrêter les updates/spawns
-        console.error("GAME OVER!");
+        this.events.off('enemyReachedEnd');
 
-        // Arrête le timer de spawn s'il est en cours
-        if (this.spawnTimer) {
-            this.spawnTimer.remove();
-        }
-
-        // Optionnel : Arrêter le mouvement des ennemis restants
-        // this.enemies.getChildren().forEach(enemy => {
-        //     if (enemy.active) enemy.enabled = false; // Désactive l'update de l'ennemi
-        // });
-
-        // Optionnel : Mettre la scène en pause
-        // this.scene.pause();
-
-        // Affiche le message "GAME OVER"
-        this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', {
-            fontSize: '64px',
-            fill: '#ff0000',
-            stroke: '#000',
-            strokeThickness: 6,
-            align: 'center'
-        })
-        .setOrigin(0.5) // Centre le texte
-        .setDepth(2000); // S'assure qu'il est au-dessus de tout
-
-        // Optionnel : Ajouter une option pour redémarrer après quelques secondes
-        // this.time.delayedCall(3000, () => this.scene.restart());
+        this.scene.stop('PathScene')
+        this.scene.start('GameOverScene');
     }
 
     update(time, delta) {
