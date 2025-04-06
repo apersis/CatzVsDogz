@@ -39,6 +39,7 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('entrechat', 'assets/entrechat.png');
         this.load.image('felintion', 'assets/felintion.png');
         this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png');
+        this.load.image('towerPlace', 'assets/emplacementTower.png')
     }
 
     create() {
@@ -70,8 +71,9 @@ export default class PathScene extends Phaser.Scene {
         ];
 
         this.placementLocations.forEach(location => {
-            const placementZone = this.add.rectangle(location.x, location.y, 64, 64, 0x888888, 0.5)
+            const placementZone = this.add.image(location.x, location.y, 'towerPlace')
                 .setOrigin(0.5)
+                .setScale(0.3) // Ajuste l'échelle selon la taille de ton image
                 .setInteractive()
                 .on('pointerdown', () => this.handlePlacementClick(location.x, location.y));
             placementZone.setDepth(1);
@@ -152,6 +154,7 @@ export default class PathScene extends Phaser.Scene {
                 this.updateMoneyDisplay();
                 const newTower = new Tower(this, x, y, texture, range, damage, attackRate, cost, this.enemies);
                 newTower.setScale(0.07);
+                newTower.setDepth(2); // Ajout de cette ligne pour définir la profondeur de la tour
                 this.towers.add(newTower);
                 this.selectedTowerData = null;
                 console.log(`Tour placée ! Argent restant: ${this.playerMoney}`);
