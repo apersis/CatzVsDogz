@@ -33,7 +33,7 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('lifeEmpty', 'assets/videvi.png');
         this.load.image('entrechat', 'assets/entrechat.png'); // Image pour le bouton de la tour 1
         this.load.image('felintion', 'assets/felintion.png'); // Image pour le bouton de la tour 2
-        this.load.image('langue_lapeuse', 'assets/langue_lapeuse.png'); // Image pour le bouton de la tour 3
+        this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png'); // Image pour le bouton de la tour 3
     }
 
     create() {
@@ -79,7 +79,7 @@ export default class PathScene extends Phaser.Scene {
         const buttonSpacing = 40;
 
         // --- Création du bouton pour la tour 1 ---
-        const entrechat = this.add.image(buttonX, buttonY, 'entrechat')
+        const entrechat = this.add.image(buttonX -725, buttonY -100, 'entrechat')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
@@ -95,10 +95,8 @@ export default class PathScene extends Phaser.Scene {
             });
         entrechat.setDepth(2);
 
-        buttonY -= buttonSpacing;
-
         // --- Création du bouton pour la tour 2 ---
-        const felintion = this.add.image(buttonX, buttonY, 'felintion')
+        const felintion = this.add.image(buttonX -425 , buttonY -100, 'felintion')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
@@ -107,17 +105,15 @@ export default class PathScene extends Phaser.Scene {
                     texture: 'originTower', // Tu peux changer la texture
                     range: 300, // Très grande portée
                     damage: 5, // Très faibles dégâts
-                    attackRate: 100, // Très haute vitesse d'attaque (0.1 seconde)
+                    attackRate: 500, // Très haute vitesse d'attaque (0.1 seconde)
                     cost: 180, // Coût élevé
                 };
                 console.log('Tour 2 sélectionnée (faibles dégâts, rapide, grande portée).');
             });
         felintion.setDepth(2);
 
-        buttonY -= buttonSpacing;
-
         // --- Création du bouton pour la tour 3 ---
-        const langue_lapeuse = this.add.image(buttonX, buttonY, 'langue_lapeuse')
+        const langue_rapeuse = this.add.image(buttonX -125, buttonY-100, 'langue_rapeuse')
             .setOrigin(0.5)
             .setScale(0.1)
             .setInteractive()
@@ -131,7 +127,7 @@ export default class PathScene extends Phaser.Scene {
                 };
                 console.log('Tour 3 sélectionnée (gros dégâts, lente, très faible portée).');
             });
-        langue_lapeuse.setDepth(2);
+        langue_rapeuse.setDepth(2);
 
         this.createLifeDisplay();
         this.events.on('enemyReachedEnd', this.handleEnemyReachedEnd, this);
