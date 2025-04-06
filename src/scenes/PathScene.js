@@ -134,7 +134,7 @@ export default class PathScene extends Phaser.Scene {
         this.createLifeDisplay();
         this.events.on('enemyReachedEnd', this.handleEnemyReachedEnd, this);
         this.events.on('enemyDied', this.handleEnemyDied, this); // Écoute l'événement de mort de l'ennemi
-        this.enemiesToSpawn = this.generateEnemyQueue(10);
+        this.enemiesToSpawn = this.generateEnemyQueue(1000000);
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
 
         // --- Affichage de l'argent du joueur ---
