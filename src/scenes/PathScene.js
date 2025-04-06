@@ -1,132 +1,173 @@
 // src/scenes/PathScene.js
 import Phaser from 'phaser';
-import Enemy from '../enemies/Enemy.js'; // Assure-toi que ce chemin est correct
-import Tower from '../towers/Tower.js'; // Adapte le chemin si besoin
+import Enemy from '../enemies/Enemy.js';
+import Tower from '../towers/Tower.js';
 
 // --- Constantes ---
-const ENEMY_SPAWN_DELAY = 800; // Délai en ms entre chaque ennemi
+const ENEMY_SPAWN_DELAY = 800;
 const INITIAL_PLAYER_LIFE = 9;
 
 export default class PathScene extends Phaser.Scene {
     constructor() {
         super('PathScene');
-
-        // --- Propriétés ---
         this.graphics = null;
         this.path = null;
         this.enemies = null;
         this.enemiesToSpawn = [];
-        this.towers = null; // Groupe pour les tours fonctionnelles
-
-        // --- État du jeu ---
+        this.towers = null;
         this.playerLife = INITIAL_PLAYER_LIFE;
-        this.lifeSprites = []; // Tableau pour stocker les sprites de coeurs
+        this.lifeSprites = [];
         this.isGameOver = false;
         this.spawnTimer = null;
+        this.selectedTowerData = null; // Pour stocker les données de la tour sélectionnée
+        this.placementLocations = []; // Pour stocker les emplacements de placement
     }
 
     preload() {
-        // --- Chargement des Assets ---
-        // Ennemis
         this.load.image('golden', 'assets/golden.png');
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
-
-        // Tours
-        this.load.image('originTower', 'assets/tower1.png'); // Ta tour de base
-
-        // Interface / Autres
+        this.load.image('originTower', 'assets/tower1.png');
         this.load.image('backgroundKey', 'assets/level1.png');
         this.load.image('lifeFull', 'assets/pleinvie.png');
         this.load.image('lifeEmpty', 'assets/videvi.png');
-
-        // Ajoute ici d'autres assets si nécessaire (projectiles, sons...)
-        // this.load.image('bullet', 'assets/bullet.png');
-        // this.load.audio('shootSound', 'assets/shoot.mp3');
+        this.load.image('entrechat', 'assets/entrechat.png'); // Image pour le bouton de la tour 1
+        this.load.image('felintion', 'assets/felintion.png'); // Image pour le bouton de la tour 2
+        this.load.image('langue_lapeuse', 'assets/langue_lapeuse.png'); // Image pour le bouton de la tour 3
     }
 
     create() {
-        // --- Fond ---
         this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
-
-        // --- Chemin ---
         this.graphics = this.add.graphics();
         this.path = this.createPath();
 
-        // --- Groupe Ennemis ---
         this.enemies = this.add.group({
             classType: Enemy,
             runChildUpdate: true
         });
 
-        // --- Groupe Tours ---
         this.towers = this.add.group({
-            classType: Tower, // Indique le type d'objet pour ce groupe
-            runChildUpdate: true // Pour que l'update des tours soit appelé
+            classType: Tower,
+            runChildUpdate: true
         });
 
-        // --- Placement des Tours (Exemples avec la classe Tower) ---
-        // Remplace tes this.add.image par ceci :
-        // new Tower(scene, x, y, texture, range, damage, attackRate, cost, enemiesGroup)
+        this.placementLocations = [
+            { x: 450, y: 1750 },
+            { x: 200, y: 1600 },
+            { x: 450, y: 1450 },
+            { x: 450, y: 1230 },
+            { x: 850, y: 1400 },
+            { x: 620, y: 1120 },
+            { x: 850, y: 950 },
+            { x: 550, y: 990 },
+            { x: 570, y: 775 },
+            { x: 340, y: 775 }
+        ];
+        
 
-        // Tour 1 (Exemple)
-        const tower1Range = 150; // Portée en pixels
-        const tower1Damage = 10;  // Dégâts par tir
-        const tower1AttackRate = 1000; // Attaque toutes les 1000ms (1 seconde)
-        const tower1Cost = 50; // Coût pour placer cette tour
-        const tower1 = new Tower(this, 550, 775, 'originTower', tower1Range, tower1Damage, tower1AttackRate, tower1Cost, this.enemies);
-        tower1.setScale(0.07); // Applique l'échelle
-        this.towers.add(tower1); // Ajoute la tour au groupe de tours
+        // --- Création des emplacements interactifs ---
+        this.placementLocations.forEach(location => {
+            const placementZone = this.add.rectangle(location.x, location.y, 64, 64, 0x888888, 0.5)
+                .setOrigin(0.5)
+                .setInteractive()
+                .on('pointerdown', () => this.handlePlacementClick(location.x, location.y));
+            placementZone.setDepth(1);
+        });
 
-        // Tour 2 (Exemple)
-        const tower2 = new Tower(this, 340, 775, 'originTower', 150, 10, 1000, 50, this.enemies);
-        tower2.setScale(0.07);
-        this.towers.add(tower2);
+        const buttonX = this.scale.width - 120;
+        let buttonY = this.scale.height - 50;
+        const buttonSpacing = 40;
 
-        // Fais de même pour tes autres emplacements de tours... Adapte les stats si tu veux des tours différentes
-        const tower10 = new Tower(this, 340, 1200, 'originTower', 150, 10, 1000, 50, this.enemies);
-        tower10.setScale(0.07);
-        this.towers.add(tower10);
+        // --- Création du bouton pour la tour 1 ---
+        const entrechat = this.add.image(buttonX, buttonY, 'entrechat')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'originTower', // Tu peux changer la texture si tu en as une différente
+                    range: 150,
+                    damage: 50, // Gros dégâts
+                    attackRate: 2500, // Très faible vitesse d'attaque (2.5 secondes)
+                    cost: 150, // Coût élevé
+                };
+                console.log('Tour 1 sélectionnée (gros dégâts, lente).');
+            });
+        entrechat.setDepth(2);
 
-        // Tu peux afficher la portée d'une tour au clic par exemple (logique à ajouter)
-        // tower1.setInteractive();
-        // tower1.on('pointerdown', () => {
-        //     tower1.showRange(!tower1.rangeCircle.visible); // Bascule la visibilité
-        // });
+        buttonY -= buttonSpacing;
 
+        // --- Création du bouton pour la tour 2 ---
+        const felintion = this.add.image(buttonX, buttonY, 'felintion')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'originTower', // Tu peux changer la texture
+                    range: 300, // Très grande portée
+                    damage: 5, // Très faibles dégâts
+                    attackRate: 100, // Très haute vitesse d'attaque (0.1 seconde)
+                    cost: 180, // Coût élevé
+                };
+                console.log('Tour 2 sélectionnée (faibles dégâts, rapide, grande portée).');
+            });
+        felintion.setDepth(2);
 
-        // --- Affichage des Vies (Coeurs) ---
+        buttonY -= buttonSpacing;
+
+        // --- Création du bouton pour la tour 3 ---
+        const langue_lapeuse = this.add.image(buttonX, buttonY, 'langue_lapeuse')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'originTower', // Tu peux changer la texture
+                    range: 50, // Très faible portée
+                    damage: 40, // Gros dégâts
+                    attackRate: 2000, // Très faible vitesse d'attaque (2 secondes)
+                    cost: 80, // Coût moyen
+                };
+                console.log('Tour 3 sélectionnée (gros dégâts, lente, très faible portée).');
+            });
+        langue_lapeuse.setDepth(2);
+
         this.createLifeDisplay();
-
-        // --- Événements ---
         this.events.on('enemyReachedEnd', this.handleEnemyReachedEnd, this);
-
-        // --- Vagues d'ennemis ---
         this.enemiesToSpawn = this.generateEnemyQueue(10);
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
     }
 
-    // Fonction pour créer l'affichage des coeurs
+    handlePlacementClick(x, y) {
+        if (this.selectedTowerData) {
+            const { texture, range, damage, attackRate, cost } = this.selectedTowerData;
+            const newTower = new Tower(this, x, y, texture, range, damage, attackRate, cost, this.enemies);
+            newTower.setScale(0.07);
+            this.towers.add(newTower);
+            this.selectedTowerData = null; // Réinitialiser la sélection après placement
+            console.log('Tour placée !');
+            // Optionnellement, désactiver l'emplacement après placement si on ne veut qu'une tour par emplacement
+            // placementZone.disableInteractive();
+        } else {
+            console.log('Aucune tour sélectionnée pour le placement.');
+        }
+    }
+
     createLifeDisplay() {
         const lifeStartX = 730;
         const lifeStartY = 40;
         const lifeSpacingX = 100;
         const lifeSpacingY = 50;
-        const rows = Math.ceil(INITIAL_PLAYER_LIFE / 3); // Calcule le nb de lignes nécessaire
-
-        this.lifeSprites = []; // Réinitialise le tableau
-
+        const rows = Math.ceil(INITIAL_PLAYER_LIFE / 3);
+        this.lifeSprites = [];
         let lifeIndex = 0;
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < 3; j++) {
                 if (lifeIndex < INITIAL_PLAYER_LIFE) {
                     const x = lifeStartX + j * lifeSpacingX;
                     const y = lifeStartY + i * lifeSpacingY;
-                    const lifeSprite = this.add.image(x, y, 'lifeFull');
-                    lifeSprite.setOrigin(0, 0.5);
-                    lifeSprite.setDepth(1000);
-                    lifeSprite.setScale(0.04);
-                    // lifeSprite.setScrollFactor(0); // Si la caméra bouge
+                    const lifeSprite = this.add.image(x, y, 'lifeFull').setOrigin(0, 0.5).setDepth(1000).setScale(0.04);
                     this.lifeSprites.push(lifeSprite);
                     lifeIndex++;
                 }
@@ -134,18 +175,9 @@ export default class PathScene extends Phaser.Scene {
         }
     }
 
-    // Fonction pour mettre à jour l'affichage des coeurs
     updateLifeDisplay() {
         for (let i = 0; i < this.lifeSprites.length; i++) {
-            if (i < this.playerLife) {
-                this.lifeSprites[i].setTexture('lifeFull');
-            } else {
-                // Change la texture seulement si elle n'est pas déjà vide
-                if (this.lifeSprites[i].texture.key !== 'lifeEmpty') {
-                    this.lifeSprites[i].setTexture('lifeEmpty');
-                    console.log(`Vie perdue. Sprite ${i} (représentant la vie ${i+1}) changé en vide.`);
-                }
-            }
+            this.lifeSprites[i].setTexture(i < this.playerLife ? 'lifeFull' : 'lifeEmpty');
         }
     }
 
@@ -156,7 +188,6 @@ export default class PathScene extends Phaser.Scene {
         const startY = gameHeight * 0.82;
         const endX = 460;
         const endY = gameHeight * 0.23;
-
         const path = new Phaser.Curves.Path(startX, startY);
         path.lineTo(540, 1850);
         path.lineTo(330, 1850);
@@ -177,11 +208,7 @@ export default class PathScene extends Phaser.Scene {
         const queue = [];
         for (let i = 0; i < numberOfEnemies; i++) {
             const randomType = Phaser.Math.RND.pick(enemyTypes);
-            queue.push({
-                texture: randomType.texture,
-                health: randomType.health,
-                speed: randomType.speed
-            });
+            queue.push({ texture: randomType.texture, health: randomType.health, speed: randomType.speed });
         }
         console.log("Enemy queue generated:", queue);
         return queue;
@@ -207,57 +234,30 @@ export default class PathScene extends Phaser.Scene {
         enemy.moveSpeed = speed;
         enemy.setScale(0.05);
         enemy.setPath(this.path);
-        // console.log(`Spawned ${texture}. Group size: ${this.enemies.getLength()}`); // Optionnel: moins de logs
     }
 
     handleEnemyReachedEnd(enemy) {
-        if (this.isGameOver || !enemy || !enemy.active) {
-            return;
-        }
-
+        if (this.isGameOver || !enemy || !enemy.active) return;
         if (this.playerLife > 0) {
             this.playerLife -= 1;
             console.log(`Vie perdue. Vies restantes: ${this.playerLife}`);
-            this.updateLifeDisplay(); // Met à jour les sprites de coeur
-
-            if (this.playerLife <= 0) {
-                this.triggerGameOver(); // Appelle la fonction centralisée
-            }
+            this.updateLifeDisplay();
+            if (this.playerLife <= 0) this.triggerGameOver();
         }
-        // L'ennemi se détruit via son propre code, pas besoin de le faire ici.
     }
 
     triggerGameOver() {
         this.isGameOver = true;
-        if (this.spawnTimer) {
-            this.spawnTimer.remove();
-        }
-        // Optionnel : Arrêter le mouvement des ennemis, mettre en pause, etc.
-        // this.enemies.getChildren().forEach(e => { if(e.active) e.enabled = false; });
-        // this.scene.pause();
-
+        if (this.spawnTimer) this.spawnTimer.remove();
         this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', {
             fontSize: '64px', fill: '#ff0000', stroke: '#000', strokeThickness: 6, align: 'center'
-        })
-        .setOrigin(0.5)
-        .setDepth(2000);
-        // Optionnel : Bouton Restart
-        // this.time.delayedCall(3000, () => this.scene.restart());
+        }).setOrigin(0.5).setDepth(2000);
     }
 
     update(time, delta) {
-        if (this.isGameOver) {
-            return;
-        }
-
-        // --- Debug: Dessin du chemin ---
+        if (this.isGameOver) return;
         // this.graphics.clear();
         // this.graphics.lineStyle(2, 0xffffff, 1);
         // this.path.draw(this.graphics);
-
-        // Les ennemis et les tours sont mis à jour par leur groupe (`runChildUpdate: true`)
-
-        // --- Autre logique ---
-        // Vérifier fin de vague, lancer la suivante, etc.
     }
 }
