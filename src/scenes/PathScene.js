@@ -26,6 +26,11 @@ export default class PathScene extends Phaser.Scene {
     preload() {
         // Chargement des images nécessaires
         this.load.image('golden', 'assets/golden.png');
+        this.load.image('originTower', 'assets/tower1.png')
+            
+        // Ajoutez cette ligne :
+        // 'backgroundKey' est la clé unique que vous choisissez.
+        // 'assets/images/background_td.png' est le chemin depuis le dossier 'public'.
         this.load.image('backgroundKey', 'assets/level1.png');
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
@@ -39,6 +44,27 @@ export default class PathScene extends Phaser.Scene {
         // --- Mise en place du fond ---
         // --- Fond ---
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
+        let tower = this.add.image(340, 775, 'originTower')
+        tower.setScale(0.07)
+        let towerDeux = this.add.image(570, 775, 'originTower')
+        towerDeux.setScale(0.07)
+        let towerTrois = this.add.image(550, 990, 'originTower')
+        towerTrois.setScale(0.07)
+        let towerQuatre = this.add.image(850, 950, 'originTower')
+        towerQuatre.setScale(0.07)
+        let towerCinq = this.add.image(620, 1120, 'originTower')
+        towerCinq.setScale(0.07)
+        let towerSix = this.add.image(850, 1400, 'originTower')
+        towerSix.setScale(0.07)
+        let towerSept = this.add.image(450, 1230, 'originTower')
+        towerSept.setScale(0.07)
+        let towerHuit = this.add.image(450, 1450, 'originTower')
+        towerHuit.setScale(0.07)
+        let towerNeuf = this.add.image(200, 1600, 'originTower')
+        towerNeuf.setScale(0.07)
+        let towerDix = this.add.image(450, 1750, 'originTower')
+        towerDix.setScale(0.07)
+
         // Optionnel : Ajuster la taille du fond à l'écran
         // bg.setDisplaySize(this.scale.width, this.scale.height);
 
