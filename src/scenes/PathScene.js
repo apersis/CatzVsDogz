@@ -4,7 +4,6 @@ export default class PathScene extends Phaser.Scene {
 
         // --- Propriétés de la scène ---
         this.playerLife = 9;
-        this.lifeText = null;
         this.path = null;
         this.graphics = null;
         this.dogsGroup = null; // Renommé: anciennement followers
@@ -61,8 +60,8 @@ export default class PathScene extends Phaser.Scene {
         // *** MODIFICATION startY ***
         const startY = gameHeight * 0.82; // Modifié de 0.85 à 0.82
         // *** FIN MODIFICATION startY ***
-        const endX = gameWidth * 0.42;
-        const endY = gameHeight * 0.2;
+        const endX = 460;
+        const endY = gameHeight * 0.23;
 
         this.path = new Phaser.Curves.Path(startX, startY);
         // TODO: Adapter TOUTES ces coordonnées pour l'écran mobile !
