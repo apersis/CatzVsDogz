@@ -13,11 +13,11 @@ Ce projet a été conçu avec un objectif principal : explorer l'utilisation int
 
 Nous étions une équipe de 6 personnes passionnées pour ce défi :
 
-* **Allan Bouguerab** - Développeur
-* **Raphaëlle Menard** - Développeur
-* **Johan Mons** - Développeur
-* **Tom Le Roux** - Développeur
-* **Eloïc Lesellier** - Développeur
+* **[Allan Bouguerab](https://github.com/AllanHyr)** - Développeur
+* **[Raphaëlle Menard](https://github.com/RaphaelleMen)** - Développeur
+* **[Johan Mons](https://github.com/JohanBZH)** - Développeur
+* **[Tom Le Roux](https://github.com/LeRouxTom)** - Développeur
+* **[Eloïc Lesellier](https://github.com/apersis)** - Développeur
 * **Morgane Boileau** - Illustratrice / Artiste 2D
 ## Technologies Utilisées
 
