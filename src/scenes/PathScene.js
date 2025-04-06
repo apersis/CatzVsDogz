@@ -15,6 +15,9 @@ export default class PathScene extends Phaser.Scene {
         // Si vous renommez ici, changez aussi dans create()
         this.load.image('golden', 'assets/golden.png');
         this.load.image('backgroundKey', 'assets/level1.png');
+        this.load.image('lifeFull', 'assets/pleinvie.png'); // Remplacez par le nom de votre fichier
+        this.load.image('lifeEmpty', 'assets/videvi.png'); // Remplacez par le nom de votre fichier
+        
     }
 
     create() {
@@ -22,11 +25,31 @@ export default class PathScene extends Phaser.Scene {
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
         // bg.setDisplaySize(this.scale.width, this.scale.height);
 
-        // --- Texte de Vie ---
-        this.lifeText = this.add.text(30, 30, `Vies: ${this.playerLife}`, {
-            fontSize: '32px', fill: '#FF0000', stroke: '#000', strokeThickness: 4
-        });
-        this.lifeText.setDepth(1000); // Augmenté pour être sûr qu'il soit devant les chiens
+        const lifeStartX = 730; // Position X du premier coeur
+        const lifeStartY = 40; // Position Y des coeurs
+        const lifeSpacingX = 100; // Espace entre chaque coeur (ajustez selon la taille de votre sprite)
+        const lifeSpacingY = 50; // Espace entre chaque coeur (ajustez selon la taille de votre sprite)
+        const initialLives = this.playerLife; // Nombre de vies au départ
+
+        this.lifeSprites = []; // Vider le tableau au cas où la scène est recréée
+
+        for (let i = 0; i < initialLives / 3; i++) {
+            for (let j = 0; j < 3; j++){
+                // Calculer la position X de chaque coeur
+                const x = lifeStartX + j * lifeSpacingX;
+                const y = lifeStartY + i * lifeSpacingY;
+                // Créer le sprite avec l'image 'lifeFull'
+                const lifeSprite = this.add.image(x, y, 'lifeFull');
+                lifeSprite.setOrigin(0, 0.5); // Ancrer au centre gauche par exemple
+                lifeSprite.setDepth(1000); // Mettre au premier plan
+                lifeSprite.setScale(0.04);
+                // Optionnel: Fixer par rapport à la caméra si elle bouge
+                // lifeSprite.setScrollFactor(0);
+
+                // Ajouter le sprite créé au tableau pour le retrouver plus tard
+                this.lifeSprites.push(lifeSprite);
+            }
+        }
 
         // --- Graphics ---
         this.graphics = this.add.graphics();
@@ -109,33 +132,36 @@ export default class PathScene extends Phaser.Scene {
             }
             // *** FIN MODIFICATION ***
 
-            // Logique de fin de chemin
+            // --- Logique de fin de chemin MODIFIÉE ---
             if (t >= 1.0) {
                 console.log('Chien a atteint la fin!');
-                this.playerLife -= 1;
-                if (this.playerLife < 0) this.playerLife = 0;
 
-                if (this.lifeText) {
-                    this.lifeText.setText(`Vies: ${this.playerLife}`);
-                } else {
-                    console.warn("this.lifeText n'est pas défini.");
-                }
+                // 1. Détruire le chien AVANT de changer la vie/sprite
+                dog.destroy();
 
-                dog.destroy(); // Détruire le chien
+                // 2. Diminuer la vie (seulement si > 0)
+                if (this.playerLife > 0) {
+                    this.playerLife -= 1; // Diminue la variable de vie
 
-                // Game Over Check
-                if (this.playerLife <= 0) {
-                    console.error("GAME OVER SIMPLE!");
-                    this.scene.pause();
+                    // 3. Mettre à jour le SPRITE de vie correspondant
+                    // L'index du sprite à changer est la nouvelle valeur de playerLife
+                    // (si vie=8, on change le sprite à l'index 8, qui est le 9ème coeur)
+                    if (this.lifeSprites[this.playerLife]) { // Vérifie que le sprite existe à cet index
+                        this.lifeSprites[this.playerLife].setTexture('lifeEmpty'); // Change la texture !
+                        console.log(`Vie perdue. Sprite ${this.playerLife} changé.`);
+                    } else {
+                        console.warn(`Sprite de vie à l'index ${this.playerLife} non trouvé.`);
+                    }
 
-                    // Afficher Game Over Text
-                    this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', {
-                        fontSize: '64px', fill: '#ff0000', stroke: '#000', strokeThickness: 6
-                     })
-                     .setOrigin(0.5)
-                     // *** MODIFICATION Z-Index Game Over ***
-                     .setDepth(1000); // Valeur élevée pour être sûr qu'il est au-dessus de tout
-                     // *** FIN MODIFICATION Z-Index ***
+                    // 4. Vérifier si Game Over (la vie est maintenant à 0 ou moins)
+                    if (this.playerLife <= 0) {
+                        console.error("GAME OVER SIMPLE!");
+                        this.scene.pause();
+                        // Afficher Game Over Text (avec Z-index élevé)
+                        this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', { fontSize: '64px', fill: '#ff0000', stroke: '#000', strokeThickness: 6 })
+                            .setOrigin(0.5)
+                            .setDepth(1000); // Z-index élevé
+                    }
                 }
             }
         }
