@@ -18,7 +18,6 @@ export default class PathScene extends Phaser.Scene {
 
         // --- État du jeu ---
         this.playerLife = INITIAL_PLAYER_LIFE;
-        this.lifeText = null;       // Référence à l'objet Text pour la vie
         this.isGameOver = false;    // Flag pour savoir si la partie est terminée
         this.spawnTimer = null;     // Référence au timer de spawn (pour pouvoir l'arrêter si besoin)
 
