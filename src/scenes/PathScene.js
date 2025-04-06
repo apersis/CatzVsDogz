@@ -69,24 +69,6 @@ export default class PathScene extends Phaser.Scene {
 
         this.playerLife = INITIAL_PLAYER_LIFE;
 
-        for (let i = 0; i < this.playerLife / 3; i++) {
-            for (let j = 0; j < 3; j++){
-                // Calculer la position X de chaque coeur
-                const x = lifeStartX + j * lifeSpacingX;
-                const y = lifeStartY + i * lifeSpacingY;
-                // Créer le sprite avec l'image 'lifeFull'
-                const lifeSprite = this.add.image(x, y, 'lifeFull');
-                lifeSprite.setOrigin(0, 0.5); // Ancrer au centre gauche par exemple
-                lifeSprite.setDepth(1000); // Mettre au premier plan
-                lifeSprite.setScale(0.04);
-                // Optionnel: Fixer par rapport à la caméra si elle bouge
-                // lifeSprite.setScrollFactor(0);
-
-                // Ajouter le sprite créé au tableau pour le retrouver plus tard
-                this.lifeSprites.push(lifeSprite);
-            }
-        }
-
         // --- Graphics ---
         this.graphics = this.add.graphics();
         this.path = this.createPath();
@@ -411,6 +393,8 @@ export default class PathScene extends Phaser.Scene {
             // (si vie=8, on change le sprite à l'index 8, qui est le 9ème coeur)
             if (this.lifeSprites[this.playerLife]) { // Vérifie que le sprite existe à cet index
                 this.lifeSprites[this.playerLife].setTexture('lifeEmpty'); // Change la texture !
+                console.log(this.lifeSprites[this.playerLife])
+                console.log(this.playerLife)
             } else {
                 console.warn(`Sprite de vie à l'index ${this.playerLife} non trouvé.`);
             }
