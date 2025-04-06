@@ -27,7 +27,9 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('golden', 'assets/golden.png');
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
-        this.load.image('originTower', 'assets/tower1.png');
+        this.load.image('skin_entrechat', 'assets/skin_entrechat.png');
+        this.load.image('skin_felintion', 'assets/skin_felintion.png');
+        this.load.image('skin_langue_rapeuse', 'assets/skin_langue_rapeuse.png');
         this.load.image('backgroundKey', 'assets/level1.png');
         this.load.image('lifeFull', 'assets/pleinvie.png');
         this.load.image('lifeEmpty', 'assets/videvi.png');
@@ -85,13 +87,12 @@ export default class PathScene extends Phaser.Scene {
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'originTower', // Tu peux changer la texture si tu en as une différente
-                    range: 150,
+                    texture: 'skin_entrechat', // Tu peux changer la texture si tu en as une différente
+                    range: 300,
                     damage: 50, // Gros dégâts
                     attackRate: 2500, // Très faible vitesse d'attaque (2.5 secondes)
                     cost: 150, // Coût élevé
                 };
-                console.log('Tour 1 sélectionnée (gros dégâts, lente).');
             });
         entrechat.setDepth(2);
 
@@ -102,13 +103,12 @@ export default class PathScene extends Phaser.Scene {
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'originTower', // Tu peux changer la texture
-                    range: 300, // Très grande portée
+                    texture: 'skin_felintion', // Tu peux changer la texture
+                    range: 600, // Très grande portée
                     damage: 5, // Très faibles dégâts
                     attackRate: 500, // Très haute vitesse d'attaque (0.1 seconde)
                     cost: 180, // Coût élevé
                 };
-                console.log('Tour 2 sélectionnée (faibles dégâts, rapide, grande portée).');
             });
         felintion.setDepth(2);
 
@@ -119,13 +119,12 @@ export default class PathScene extends Phaser.Scene {
             .setInteractive()
             .on('pointerdown', () => {
                 this.selectedTowerData = {
-                    texture: 'originTower', // Tu peux changer la texture
-                    range: 50, // Très faible portée
+                    texture: 'skin_langue_rapeuse', // Tu peux changer la texture
+                    range: 150, // Très faible portée
                     damage: 40, // Gros dégâts
                     attackRate: 2000, // Très faible vitesse d'attaque (2 secondes)
                     cost: 80, // Coût moyen
                 };
-                console.log('Tour 3 sélectionnée (gros dégâts, lente, très faible portée).');
             });
         langue_rapeuse.setDepth(2);
 
