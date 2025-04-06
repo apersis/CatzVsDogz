@@ -7,6 +7,7 @@ export default class PianoScene extends Phaser.Scene {
 
   preload() {
     this.load.image("background", "assets/backgroundLandingPage.png");
+    this.load.image("retourBtn", "assets/retour.png");
 
     // Chargement des images des touches
     for (let i = 1; i <= 8; i++) {
@@ -61,5 +62,45 @@ export default class PianoScene extends Phaser.Scene {
         this.sound.play(`son${i + 5}`); // Jouer les sons 5 à 8
       });
     }
+    this.createButton("retourBtn", 0.2, 0.9);
+  }
+
+  createButton(texture, xPercent, yPercent) {
+    const btn = this.add
+      .image(
+        this.cameras.main.width * xPercent,
+        this.cameras.main.height * yPercent,
+        texture
+      )
+      .setOrigin(0.5);
+
+    // Ajustement de la taille du bouton
+    const btnScale = Math.min(
+      (this.cameras.main.width * 0.7) / btn.width,
+      (this.cameras.main.height * 0.15) / btn.height
+    );
+    btn.setScale(btnScale);
+
+    // Interaction avec le bouton
+    btn.setInteractive({ useHandCursor: true });
+
+    btn.on("pointerover", () => {
+      btn.setScale(btnScale * 1.05);
+    });
+
+    btn.on("pointerout", () => {
+      btn.setScale(btnScale);
+    });
+
+    btn.on("pointerdown", () => {
+      // Vous pouvez ajouter ici les actions pour chaque bouton
+      console.log(texture + " clicked");
+
+      if (texture === "retourBtn") {
+        this.scene.start("HomePageScene");
+      }
+    });
+
+    return btn;
   }
 }

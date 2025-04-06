@@ -7,10 +7,11 @@ export default class SettingsScene extends Phaser.Scene {
 
   preload() {
     this.load.image("background", "assets/backgroundLandingPage.png");
-    this.load.image("playBtn", "assets/play.png");
-    this.load.image("creditsBtn", "assets/credits.png");
-    this.load.image("settingsBtn", "assets/settings.png");
-    this.load.image("playBerliozBtn", "assets/playWithBerlioz.png");
+    this.load.image("retourBtn", "assets/retour.png");
+
+    //Remplacer par les bons assets
+    this.load.image("btnNormal", "assets/patteIcon.png"); // Level easy
+    this.load.image("btnActive", "assets/morsureIcon.png"); // Level hard au clic
     console.log("SettingsScene: preload");
   }
 
@@ -28,44 +29,87 @@ export default class SettingsScene extends Phaser.Scene {
     const scale = Math.max(scaleX, scaleY);
     bg.setScale(scale).setScrollFactor(0);
 
-    // Création des particules rouges (sans asset externe)
-    this.createParticles();
+    this.createButton("retourBtn", 0.2, 0.9);
+
+    this.createToggleButton(0.5, 0.5);
   }
 
-  createParticles() {
-    // 1. Création dynamique d'une texture pour les particules
-    const particleSize = 15;
-    const graphics = this.make.graphics({ fillStyle: { color: 0xff0000 } }); // Rouge
-    graphics.fillCircle(particleSize, particleSize, particleSize); // Dessine un cercle
+  createToggleButton(xPercent, yPercent) {
+    // Création du bouton avec l'image normale
+    const btn = this.add
+      .image(
+        this.cameras.main.width * xPercent,
+        this.cameras.main.height * yPercent,
+        "btnNormal"
+      )
+      .setOrigin(0.5);
 
-    // Génère une texture temporaire
-    const texture = this.textures.createCanvas(
-      "particleTexture",
-      particleSize * 2,
-      particleSize * 2
+    // Ajustement taille
+    const btnScale = Math.min(
+      (this.cameras.main.width * 0.4) / btn.width,
+      (this.cameras.main.height * 0.2) / btn.height
     );
-    texture.draw(graphics, 0, 0); // Dessine le graphique sur la texture
-    texture.refresh(); // Actualise la texture
-    graphics.destroy(); // Nettoie le graphique temporaire
+    btn.setScale(btnScale).setInteractive({ useHandCursor: true });
 
-    // 2. Création du système de particules centré
-    const particles = this.add.particles("particleTexture");
+    // Interaction
+    let isActive = false; // État initial
 
-    // 3. Configuration de l'émetteur
-    particles.createEmitter({
-      x: this.cameras.main.centerX,
-      y: this.cameras.main.centerY,
-      lifespan: 2000,
-      speed: { min: 20, max: 50 },
-      scale: { start: 1, end: 0.2 },
-      alpha: { start: 1, end: 0 },
-      blendMode: "ADD",
-      frequency: 50,
-      quantity: 3,
-      emitZone: {
-        type: "random",
-        source: new Phaser.Geom.Circle(0, 0, 30), // Émission dans un cercle de 30px
-      },
+    btn.on("pointerdown", () => {
+      isActive = !isActive; // Inverse l'état
+      btn.setTexture(isActive ? "btnActive" : "btnNormal");
+
+      // !!!!! Ajoutez ici la logique liée au changement d'état
+      console.log("Bouton toggle:", isActive ? "ACTIF" : "INACTIF");
     });
+
+    // Effet hover
+    btn.on("pointerover", () => {
+      btn.setScale(btnScale * 1.1);
+    });
+
+    btn.on("pointerout", () => {
+      btn.setScale(btnScale);
+    });
+
+    return btn;
+  }
+
+  createButton(texture, xPercent, yPercent) {
+    const btn = this.add
+      .image(
+        this.cameras.main.width * xPercent,
+        this.cameras.main.height * yPercent,
+        texture
+      )
+      .setOrigin(0.5);
+
+    // Ajustement de la taille du bouton
+    const btnScale = Math.min(
+      (this.cameras.main.width * 0.7) / btn.width,
+      (this.cameras.main.height * 0.15) / btn.height
+    );
+    btn.setScale(btnScale);
+
+    // Interaction avec le bouton
+    btn.setInteractive({ useHandCursor: true });
+
+    btn.on("pointerover", () => {
+      btn.setScale(btnScale * 1.05);
+    });
+
+    btn.on("pointerout", () => {
+      btn.setScale(btnScale);
+    });
+
+    btn.on("pointerdown", () => {
+      // Vous pouvez ajouter ici les actions pour chaque bouton
+      console.log(texture + " clicked");
+
+      if (texture === "retourBtn") {
+        this.scene.start("HomePageScene");
+      }
+    });
+
+    return btn;
   }
 }

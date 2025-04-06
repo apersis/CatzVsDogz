@@ -12,7 +12,6 @@ export default class HomePageScene extends Phaser.Scene {
     this.load.image("creditsBtn", "assets/credits.png");
     this.load.image("settingsBtn", "assets/settings.png");
     this.load.image("playBerliozBtn", "assets/playWithBerlioz.png");
-    this.load.audio("backgroundMusic", "assets/Mio Mao.mp3");
     console.log("HomePageScene: preload");
   }
 
@@ -70,7 +69,6 @@ export default class HomePageScene extends Phaser.Scene {
       // Exemple pour le bouton Play :
       if (texture === "playBtn") {
         this.scene.start("PathScene");
-        this.sound.play("backgroundMusic", { loop: true });
       }
       if (texture === "playBerliozBtn") {
         this.scene.start("PianoScene");
