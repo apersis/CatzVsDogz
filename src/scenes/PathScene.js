@@ -1,105 +1,144 @@
-export default class PathScene extends Phaser.Scene
-{
+export default class PathScene extends Phaser.Scene {
     constructor() {
         super('PathScene'); // Clé unique pour cette scène
+
+        // --- Propriétés de la scène ---
+        this.playerLife = 9;
+        this.lifeText = null;
+        this.path = null;
+        this.graphics = null;
+        this.dogsGroup = null; // Renommé: anciennement followers
     }
 
-    followers;
-    graphics;
-    path;
-
-    preload ()
-    {
+    preload() {
+        // Renommer la clé si vous voulez, mais gardons 'golden' pour l'instant
+        // Si vous renommez ici, changez aussi dans create()
         this.load.image('golden', 'assets/golden.png');
-            
-        // Ajoutez cette ligne :
-        // 'backgroundKey' est la clé unique que vous choisissez.
-        // 'assets/images/background_td.png' est le chemin depuis le dossier 'public'.
         this.load.image('backgroundKey', 'assets/level1.png');
     }
 
-    // Dans src/scenes/PathScene.js, méthode create()
     create() {
+        // --- Fond ---
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
+        // bg.setDisplaySize(this.scale.width, this.scale.height);
 
+        // --- Texte de Vie ---
+        this.lifeText = this.add.text(30, 30, `Vies: ${this.playerLife}`, {
+            fontSize: '32px', fill: '#FF0000', stroke: '#000', strokeThickness: 4
+        });
+        this.lifeText.setDepth(1000); // Augmenté pour être sûr qu'il soit devant les chiens
+
+        // --- Graphics ---
         this.graphics = this.add.graphics();
 
-        // Utiliser les dimensions du jeu pour définir le chemin
-        const gameWidth = this.scale.width;  // ex: 390
-        const gameHeight = this.scale.height; // ex: 844
+        // --- Définition du Chemin (startY modifié) ---
+        const gameWidth = this.scale.width;
+        const gameHeight = this.scale.height;
+        const startX = 540; // TODO: Adapter !
+        // *** MODIFICATION startY ***
+        const startY = gameHeight * 0.82; // Modifié de 0.85 à 0.82
+        // *** FIN MODIFICATION startY ***
+        const endX = gameWidth * 0.42;
+        const endY = gameHeight * 0.2;
 
-        const startX = gameWidth * 0.1; // Point de départ X relatif
-        const endX = gameWidth * 0.9;   // Point d'arrivée X relatif
-        const startY = gameHeight * 0.1; // Point de départ Y relatif
-        const endY = gameHeight * 0.9;   // Point d'arrivée Y relatif
+        this.path = new Phaser.Curves.Path(startX, startY);
+        // TODO: Adapter TOUTES ces coordonnées pour l'écran mobile !
+        this.path.lineTo(540, 1850);
+        this.path.lineTo(330, 1850);
+        this.path.lineTo(330, 1320);
+        this.path.lineTo(750, 1320);
+        this.path.lineTo(730, 880);
+        this.path.lineTo(460, 880);
+        this.path.lineTo(endX, endY);
 
-        // Recréez votre chemin en utilisant ces variables relatives
-        // Exemple très simplifié (à adapter à votre logique de zig-zag) :
-        this.path = new Phaser.Curves.Path(startX, startY * 0.5); // Commence un peu en haut
-        this.path.lineTo(startX, startY);
+        // --- Création du Groupe de Chiens (Renommé) ---
+        this.dogsGroup = this.add.group(); // Renommé: anciennement followers
+        const startPoint = this.path.getStartPoint();
 
-        const max = 8;
-        const segmentHeight = (endY - startY) / max;
+        for (let i = 0; i < 32; i++) {
+            // Renommé: ball -> dog
+            const dog = this.dogsGroup.create(startPoint.x, startPoint.y, 'golden');
 
-        for (let i = 0; i < max; i++) {
-            const currentY = startY + segmentHeight * (i + 1);
-            if (i % 2 === 0) {
-                this.path.lineTo(endX, currentY);
-            } else {
-                this.path.lineTo(startX, currentY);
-            }
+            // *** MODIFICATION Visibilité Initiale ***
+            dog.setAlpha(0); // Rendre invisible au départ
+            // *** FIN MODIFICATION Visibilité Initiale ***
+
+            dog.setScale(0.05);
+            dog.setData('vector', new Phaser.Math.Vector2());
+
+            // Le tween anime toujours la propriété 'z' qui sera lue dans update()
+            this.tweens.add({
+                targets: dog,
+                z: 1,
+                ease: 'Linear',
+                duration: 12000,
+                repeat: -1,
+                delay: i * 1000
+            });
         }
+    } // Fin de create()
 
-        this.followers = this.add.group();
-
-        for (let i = 0; i < 32; i++)
-            {
-                const ball = this.followers.create(0, -50, 'golden');
-
-                ball.setScale(0.05)
-    
-                ball.setData('vector', new Phaser.Math.Vector2());
-    
-                this.tweens.add({
-                    targets: ball,
-                    z: 1,
-                    ease: 'Linear',
-                    duration: 12000,
-                    repeat: -1,
-                    delay: i * 100
-                });
-            }
-        // this.path.lineTo(startX, endY + 50); // Ajuster la fin aussi si besoin
-
-        // ... (le reste du code create() pour les followers) ...
-
-        // IMPORTANT: vérifiez aussi où les followers sont créés initialement
-        // this.followers.create(startX, startY * 0.5, 'ball'); // Au lieu de (0, -50) ?
-
-        // ... (le reste du code create() pour les tweens) ...
-    }
-
-    update ()
-    {
+    update() {
         this.graphics.clear();
-
-        this.graphics.lineStyle(1, 0xffffff, 1);
-
+        this.graphics.lineStyle(1, 0xffffff, 0); // Chemin invisible
         this.path.draw(this.graphics);
 
-        const balls = this.followers.getChildren();
+        // Renommé: balls -> dogs, followers -> dogsGroup
+        const dogs = this.dogsGroup.getChildren();
 
-        for (let i = 0; i < balls.length; i++)
-        {
-            const t = balls[i].z;
-            const vec = balls[i].getData('vector');
+        // Itération arrière
+        for (let i = dogs.length - 1; i >= 0; i--) {
+            // Renommé: ball -> dog
+            const dog = dogs[i];
+            if (!dog || !dog.active) {
+                 continue;
+            }
 
-            //  The vector is updated in-place
+            const t = dog.z; // Progression 0 à 1
+            const vec = dog.getData('vector');
+
+            // Mise à jour position
             this.path.getPoint(t, vec);
+            dog.setPosition(vec.x, vec.y);
+            dog.setDepth(dog.y); // Profondeur basée sur Y
 
-            balls[i].setPosition(vec.x, vec.y);
+            // *** MODIFICATION : Rendre visible si bouge ***
+            // Si le chien est invisible ET que sa progression est > 0 (il a commencé à bouger)
+            if (dog.alpha === 0 && t > 0) {
+                dog.setAlpha(1); // Le rendre visible
+            }
+            // *** FIN MODIFICATION ***
 
-            balls[i].setDepth(balls[i].y);
+            // Logique de fin de chemin
+            if (t >= 1.0) {
+                console.log('Chien a atteint la fin!');
+                this.playerLife -= 1;
+                if (this.playerLife < 0) this.playerLife = 0;
+
+                if (this.lifeText) {
+                    this.lifeText.setText(`Vies: ${this.playerLife}`);
+                } else {
+                    console.warn("this.lifeText n'est pas défini.");
+                }
+
+                dog.destroy(); // Détruire le chien
+
+                // Game Over Check
+                if (this.playerLife <= 0) {
+                    console.error("GAME OVER SIMPLE!");
+                    this.scene.pause();
+
+                    // Afficher Game Over Text
+                    this.add.text(this.scale.width / 2, this.scale.height / 2, 'GAME OVER', {
+                        fontSize: '64px', fill: '#ff0000', stroke: '#000', strokeThickness: 6
+                     })
+                     .setOrigin(0.5)
+                     // *** MODIFICATION Z-Index Game Over ***
+                     .setDepth(1000); // Valeur élevée pour être sûr qu'il est au-dessus de tout
+                     // *** FIN MODIFICATION Z-Index ***
+                }
+            }
         }
-    }
-}
+    } // Fin de update()
+
+} // Fin de la classe
