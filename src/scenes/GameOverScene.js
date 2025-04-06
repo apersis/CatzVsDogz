@@ -19,6 +19,7 @@ export default class GameOverScene extends Phaser.Scene {
         // 2. Charger l'image "Game Over" que vous voulez afficher par-dessus
         this.load.image('gameOverImage', 'assets/game-over.png'); 
         this.load.image('playAgainImage', 'assets/play-again.png');
+        this.load.image('accueilImage', 'assets/retour.png')
     }
 
     create() {
@@ -40,69 +41,49 @@ export default class GameOverScene extends Phaser.Scene {
         gameOverImg.setScale(0.4);
 
         let playAgainImg = this.add.image(
-            this.scale.width / 2.5,
+            this.scale.width / 2,
             this.scale.height / 1.3, // Ajustez la position Y si besoin (ex: * 0.4 pour la monter un peu)
             'playAgainImage'
         );
         playAgainImg.setScale(1.5);
+        playAgainImg.setInteractive({ useHandCursor: true }); // Rend l'IMAGE interactive et change le curseur au survol
+        playAgainImg.on('pointerdown', () => {
+            console.log('Play Again Image clicked! Restarting game...');
+            // Relance la scène de jeu principale
+            this.scene.stop('GameOverScene');
+            this.scene.start('PathScene'); // Assurez-vous que 'PathScene' est la bonne clé
+        });
+        playAgainImg.on('pointerover', () => {
+            // Légèrement plus clair au survol
+            playAgainImg.setTint(0xDDDDDD);
+        });
+        playAgainImg.on('pointerout', () => {
+            // Revient à la normale quand le curseur quitte l'image
+            playAgainImg.clearTint();
+        });
 
-        this.createButton('playAgainBtn', this.scale.width / 2.5, this.scale.height / 1.3 );
+        gameOverImg.setScale(0.4);
 
-        // 3. Optionnel : Ajouter un texte ou un bouton pour rejouer
-        this.add.text(this.scale.width / 2, this.scale.height * 0.75, 'Cliquez pour Rejouer', {
-            fontSize: '32px',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 5
-        })
-        .setOrigin(0.5) // Centrer le texte
-        .setDepth(1)    // S'assurer qu'il est devant l'image Game Over si elle est grande
-        .setInteractive() // Rend le texte cliquable
-        .on('pointerdown', () => {
-            console.log('Restarting game...');
-            // Relance la scène de jeu principale (assurez-vous que la clé 'PathScene' est correcte)
-            this.scene.start('PathScene');
+        let homeImg = this.add.image(
+            this.scale.width / 2,
+            this.scale.height / 1.1, // Ajustez la position Y si besoin (ex: * 0.4 pour la monter un peu)
+            'accueilImage'
+        );
+        homeImg.setScale(1.5);
+        homeImg.setInteractive({ useHandCursor: true }); // Rend l'IMAGE interactive et change le curseur au survol
+        homeImg.on('pointerdown', () => {
+            console.log('Play Again Image clicked! Restarting game...');
+            // Relance la scène de jeu principale
+            this.scene.stop('GameOverScene');
+            this.scene.start('HomePageScene'); // Assurez-vous que 'PathScene' est la bonne clé
+        });
+        homeImg.on('pointerover', () => {
+            // Légèrement plus clair au survol
+            homeImg.setTint(0xDDDDDD);
+        });
+        homeImg.on('pointerout', () => {
+            // Revient à la normale quand le curseur quitte l'image
+            homeImg.clearTint();
         });
     }
-
-    
-  createButton(texture, xPercent, yPercent) {
-    const btn = this.add
-      .image(
-        this.cameras.main.width * xPercent,
-        this.cameras.main.height * yPercent,
-        texture
-      )
-      .setOrigin(0.5);
-
-    // Ajustement de la taille du bouton
-    const btnScale = Math.min(
-      (this.cameras.main.width * 0.7) / btn.width,
-      (this.cameras.main.height * 0.15) / btn.height
-    );
-    btn.setScale(btnScale);
-
-    // Interaction avec le bouton
-    btn.setInteractive({ useHandCursor: true });
-
-    btn.on("pointerover", () => {
-      btn.setScale(btnScale * 1.05);
-    });
-
-    btn.on("pointerout", () => {
-      btn.setScale(btnScale);
-    });
-
-    btn.on("pointerdown", () => {
-      if (texture === "retourBtn") {
-        this.scene.start("HomePageScene");
-      }
-      if (texture === "playAgainBtn") {
-          this.scene.start("PathScene");
-          this.sound.play("backgroundMusic", { loop: true });
-      }
-    });
-
-    return btn;
-  }
 }
