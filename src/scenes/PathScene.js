@@ -30,8 +30,17 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
         // Charge ici d'autres assets (tours, sons, etc.)
-        this.load.image('lifeFull', 'assets/pleinvie.png'); // Remplacez par le nom de votre fichier
-        this.load.image('lifeEmpty', 'assets/videvi.png'); // Remplacez par le nom de votre fichier
+        this.load.image('lifeFull', 'assets/pleinvie.png'); 
+        this.load.image('lifeEmpty', 'assets/videvi.png'); 
+
+        //Texture pour l'eau
+        if (!this.textures.exists('waterParticle')) {
+            const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+            graphics.fillStyle(0x0398fc, 0.8); // Bleu de base avec transparence
+            graphics.fillCircle(16, 16, 16);
+            graphics.generateTexture('waterParticle', 32, 32);
+            graphics.destroy();
+        }
         
     }
 
@@ -90,6 +99,83 @@ export default class PathScene extends Phaser.Scene {
         // --- Lancement du processus de spawn ---
         // Commence à faire apparaître les ennemis selon le délai défini
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
+
+        // Génération de fumée -------------------------------------
+        this.smoke = this.add.particles(0, 0, 'smokeParticle', {
+            x: this.cameras.main.centerX * 0.23,
+            y: this.cameras.main.height * 0.35,
+            quantity: 10, // Nombre de particules
+            speed: { min: 30, max: 60 }, 
+            angle: { min: 75, max: 105 }, // Direction verticale précise
+            scale: { 
+                start: 0.4,  // Taille initiale
+                end: 1.2,     // Taille finale
+                ease: 'Quad.easeOut'
+            },
+            alpha: { 
+                start: 0.8, 
+                end: 0,
+                ease: 'Cubic.easeOut' 
+            },
+            lifespan: 3500, // Durée de vie augmentée
+            frequency: 120,  // Apparition plus fréquente
+            blendMode: 'NORMAL',
+            tint: [0xBBBBBB, 0x787878, 0x323232], // Nuances de gris
+            emitZone: {
+                type: 'random',
+                source: new Phaser.Geom.Circle(0, 0, 20) // Zone d'émission élargie
+            },
+            gravityY: -200, // Force ascensionnelle
+            rotate: { min: -5, max: 5 } // Légère rotation
+        }).setDepth(500);
+
+        // Animation de variation
+        this.time.addEvent({
+            delay: 1500,
+            callback: () => {
+                this.smoke.setQuantity(Phaser.Math.Between(3, 7));
+            },
+            loop: true
+        });
+        //-----------------------------------------------
+        // Génération d'eau' -------------------------------------
+        this.water = this.add.particles(0, 0, 'waterParticle', {
+            x: this.cameras.main.centerX * 1.95,
+            y: this.cameras.main.height * 0.18,
+            quantity: 20, // Nombre de particules
+            speed: { min: 30, max: 50 }, 
+            angle: { min: 87, max: 93 }, // Direction verticale précise
+            scale: { 
+                start: 0.2,  // Taille initiale
+                end: 0.4,     // Taille finale
+                ease: 'Quad.easeOut'
+            },
+            alpha: { 
+                start: 1, 
+                end: 0.2,
+                ease: 'Cubic.easeOut' 
+            },
+            lifespan: 1000, // Durée de vie
+            frequency: 120,  // Apparition plus fréquente
+            blendMode: 'NORMAL',
+            tint: [0x0398fc, 0x46a2e0, 0x1432f5], // Nuances de bleu
+            emitZone: {
+                type: 'random',
+                source: new Phaser.Geom.Circle(0, 0, 5) // Zone d'émission élargie
+            },
+            gravityY: 200, // Force ascensionnelle
+            rotate: { min: -3, max: 3 } // Légère rotation
+        }).setDepth(500);
+
+        // Animation de variation
+        this.time.addEvent({
+            delay: 1500,
+            callback: () => {
+                this.water.setQuantity(Phaser.Math.Between(10, 15));
+            },
+            loop: true
+        });
+        //-----------------------------------------------
     }
 
     createPath() {

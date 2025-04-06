@@ -66,44 +66,6 @@ export default class CreditScene extends Phaser.Scene {  // <-- Correction du no
         bg.setScale(scale).setScrollFactor(0);  
 
         this.createButton('retourBtn', 0.2, 0.90);   
-
-        // Génération de fumée
-        this.smoke = this.add.particles(0, 0, 'smokeParticle', {
-            x: this.cameras.main.centerX * 0.7,
-            y: this.cameras.main.height * 0.8,
-            quantity: 3, // Augmentation du nombre de particules
-            speed: { min: 30, max: 60 }, // Plus rapide
-            angle: { min: 75, max: 105 }, // Direction verticale précise
-            scale: { 
-                start: 0.4,  // Taille initiale augmentée
-                end: 1.2,     // Taille finale plus grande
-                ease: 'Quad.easeOut'
-            },
-            alpha: { 
-                start: 0.8, 
-                end: 0,
-                ease: 'Cubic.easeOut' 
-            },
-            lifespan: 3000, // Durée de vie augmentée
-            frequency: 120,  // Apparition plus fréquente
-            blendMode: 'SCREEN',
-            tint: [0xEEEEEE, 0xBBBBBB, 0x888888], // Nuances de gris
-            emitZone: {
-                type: 'random',
-                source: new Phaser.Geom.Circle(0, 0, 20) // Zone d'émission élargie
-            },
-            gravityY: -200, // Force ascensionnelle
-            rotate: { min: -5, max: 5 } // Légère rotation
-        });
-
-        // Animation supplémentaire pour varier la densité
-        this.time.addEvent({
-            delay: 2000,
-            callback: () => {
-                this.smoke.setQuantity(Phaser.Math.Between(2, 5));
-            },
-            loop: true
-        });
     }
 
     createButton(texture, xPercent, yPercent) {
