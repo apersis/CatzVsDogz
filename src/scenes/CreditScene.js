@@ -1,30 +1,29 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
-export default class CreditScene extends Phaser.Scene {  // <-- Correction du nom de la classe
-    constructor() {
-        super('CreditScene');  // <-- Correction de la clé de la scène
-    }
+export default class CreditScene extends Phaser.Scene {
+  // <-- Correction du nom de la classe
+  constructor() {
+    super("CreditScene"); // <-- Correction de la clé de la scène
+  }
 
-    preload() {
-        this.load.image('background', 'assets/backgroundLandingPage.png');
+  preload() {
+    this.load.image("background", "assets/backgroundLandingPage.png");
 
-        console.log('CreditScene: preload');
-    }
+    console.log("CreditScene: preload");
+  }
 
-    create() {
-        console.log('CreditScene: create');
-        
-        // Ajout du background
-        const bg = this.add.image(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            'background'
-        ).setOrigin(0.5);
+  create() {
+    console.log("CreditScene: create");
 
-        // Ajustement de la taille
-        const scaleX = this.cameras.main.width / bg.width;
-        const scaleY = this.cameras.main.height / bg.height;
-        const scale = Math.max(scaleX, scaleY);
-        bg.setScale(scale).setScrollFactor(0);  
-    }
+    // Ajout du background
+    const bg = this.add
+      .image(this.cameras.main.centerX, this.cameras.main.centerY, "background")
+      .setOrigin(0.5);
+
+    // Ajustement de la taille
+    const scaleX = this.cameras.main.width / bg.width;
+    const scaleY = this.cameras.main.height / bg.height;
+    const scale = Math.max(scaleX, scaleY);
+    bg.setScale(scale).setScrollFactor(0);
+  }
 }
