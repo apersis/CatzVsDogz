@@ -7,6 +7,8 @@ export default class HomePageScene extends Phaser.Scene {  // <-- Correction du 
 
     preload() {
         this.load.image('background', 'assets/backgroundLandingPage.png');
+        this.load.image('catHome', 'assets/catHome.png');
+
         this.load.image('playBtn', 'assets/play.png');
         this.load.image('creditsBtn', 'assets/credits.png');
         this.load.image('settingsBtn', 'assets/settings.png');
