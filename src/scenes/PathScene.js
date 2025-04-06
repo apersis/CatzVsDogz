@@ -1,26 +1,29 @@
 // src/scenes/PathScene.js
 import Phaser from 'phaser';
-import Enemy from '../enemies/Enemy.js'; // Assure-toi que ce chemin est correct
+import Enemy from '../enemies/Enemy.js';
+import Tower from '../towers/Tower.js';
 
-// --- Constantes (optionnel mais pratique) ---
-const ENEMY_SPAWN_DELAY = 800; // Délai en millisecondes entre chaque ennemi
+// --- Constantes ---
+const ENEMY_SPAWN_DELAY = 800;
 const INITIAL_PLAYER_LIFE = 9;
+const INITIAL_PLAYER_MONEY = 400; // Argent de départ
 
 export default class PathScene extends Phaser.Scene {
     constructor() {
-        super('PathScene'); // Clé unique pour la scène
-
-        // --- Propriétés ---
-        this.graphics = null;       // Pour dessiner le chemin (debug)
-        this.path = null;           // L'objet Phaser.Curves.Path
-        this.enemies = null;        // Le groupe Phaser contenant les ennemis actifs
-        this.enemiesToSpawn = [];   // La file d'attente des définitions d'ennemis à faire apparaître
-
-        // --- État du jeu ---
+        super('PathScene');
+        this.graphics = null;
+        this.path = null;
+        this.enemies = null;
+        this.enemiesToSpawn = [];
+        this.towers = null;
         this.playerLife = INITIAL_PLAYER_LIFE;
-        this.isGameOver = false;    // Flag pour savoir si la partie est terminée
-        this.spawnTimer = null;     // Référence au timer de spawn (pour pouvoir l'arrêter si besoin)
-
+        this.lifeSprites = [];
+        this.isGameOver = false;
+        this.spawnTimer = null;
+        this.selectedTowerData = null;
+        this.placementLocations = [];
+        this.playerMoney = INITIAL_PLAYER_MONEY; // Ajout de l'argent du joueur
+        this.moneyText = null; // Pour afficher l'argent
         // Compteur de particules
         this.counter = 0;
         this.counterText = null;
@@ -28,15 +31,19 @@ export default class PathScene extends Phaser.Scene {
     }
 
     preload() {
-        // Chargement des images nécessaires
         this.load.image('golden', 'assets/golden.png');
         this.load.image('backgroundKey', 'assets/cuisine.png');
         this.load.image('chihuahua', 'assets/chihuahua.png');
         this.load.image('basset', 'assets/basset.png');
-        // Charge ici d'autres assets (tours, sons, etc.)
-        this.load.image('lifeFull', 'assets/pleinvie.png'); // Remplacez par le nom de votre fichier
-        this.load.image('lifeEmpty', 'assets/videvi.png'); // Remplacez par le nom de votre fichier
-
+        this.load.image('skin_entrechat', 'assets/skin_entrechat.png');
+        this.load.image('skin_felintion', 'assets/skin_felintion.png');
+        this.load.image('skin_langue_rapeuse', 'assets/skin_langue_rapeuse.png');
+        this.load.image('lifeFull', 'assets/pleinvie.png');
+        this.load.image('lifeEmpty', 'assets/videvi.png');
+        this.load.image('entrechat', 'assets/entrechat.png');
+        this.load.image('felintion', 'assets/felintion.png');
+        this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png');
+        this.load.image('towerPlace', 'assets/emplacementTower.png')
         if (!this.textures.exists('waterParticle')) {
             const graphics = this.make.graphics({ x: 0, y: 0, add: false });
             graphics.fillStyle(0x0398fc, 0.8); // Bleu de base avec transparence
@@ -84,25 +91,94 @@ export default class PathScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.path = this.createPath();
 
-        this.enemies = this.add.group(
-            {
-                classType: Enemy,
-                runChildUpdate : true
-            }
-        );
+        this.enemies = this.add.group({
+            classType: Enemy,
+            runChildUpdate: true
+        });
 
-        // --- Gestion des événements ---
-        // Écoute l'événement émis par un Enemy lorsqu'il atteint la fin
+        this.towers = this.add.group({
+            classType: Tower,
+            runChildUpdate: true
+        });
+
+        this.placementLocations = [
+            { x: 450, y: 1750 },
+            { x: 200, y: 1600 },
+            { x: 450, y: 1450 },
+            { x: 450, y: 1230 },
+            { x: 850, y: 1400 },
+            { x: 620, y: 1120 },
+            { x: 850, y: 950 },
+            { x: 550, y: 990 },
+            { x: 570, y: 775 },
+            { x: 340, y: 775 }
+        ];
+
+        this.placementLocations.forEach(location => {
+            const placementZone = this.add.image(location.x, location.y, 'towerPlace')
+                .setOrigin(0.5)
+                .setScale(0.3) // Ajuste l'échelle selon la taille de ton image
+                .setInteractive()
+                .on('pointerdown', () => this.handlePlacementClick(location.x, location.y));
+            placementZone.setDepth(1);
+        });
+
+        const buttonX = this.scale.width - 120;
+        let buttonY = this.scale.height - 50;
+        const buttonSpacing = 40;
+
+        const entrechat = this.add.image(buttonX - 725, buttonY - 100, 'entrechat')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'skin_entrechat',
+                    range: 300,
+                    damage: 50,
+                    attackRate: 2500,
+                    cost: 150,
+                };
+                console.log('Tour Entrechat sélectionnée (coût 150).');
+            });
+        entrechat.setDepth(2);
+
+        const felintion = this.add.image(buttonX - 425, buttonY - 100, 'felintion')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'skin_felintion',
+                    range: 600,
+                    damage: 5,
+                    attackRate: 500,
+                    cost: 180,
+                };
+                console.log('Tour Felintion sélectionnée (coût 180).');
+            });
+        felintion.setDepth(2);
+
+        const langue_rapeuse = this.add.image(buttonX - 125, buttonY - 100, 'langue_rapeuse')
+            .setOrigin(0.5)
+            .setScale(0.1)
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.selectedTowerData = {
+                    texture: 'skin_langue_rapeuse',
+                    range: 150,
+                    damage: 40,
+                    attackRate: 2000,
+                    cost: 80,
+                };
+                console.log('Tour Langue Rapeuse sélectionnée (coût 80).');
+            });
+        langue_rapeuse.setDepth(2);
+
+        this.createLifeDisplay();
         this.events.on('enemyReachedEnd', this.handleEnemyReachedEnd, this);
-
-        // --- Préparation de la vague d'ennemis ---
-        // Génère la liste des ennemis à faire apparaître pour cette vague
-        this.enemiesToSpawn = this.generateEnemyQueue(10); // Génère 10 ennemis
-
-        console.log(this.enemiesToSpawn);
-
-        // --- Lancement du processus de spawn ---
-        // Commence à faire apparaître les ennemis selon le délai défini
+        this.events.on('enemyDied', this.handleEnemyDied, this); // Écoute l'événement de mort de l'ennemi
+        this.enemiesToSpawn = this.generateEnemyQueue(1000000);
         this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
 
         // Génération de fumée -------------------------------------
@@ -182,6 +258,15 @@ export default class PathScene extends Phaser.Scene {
         });
 
         this.setupCounter();
+
+        
+        // --- Affichage de l'argent du joueur ---
+        this.moneyText = this.add.text(20, this.scale.height - 30, `Argent: ${this.playerMoney}`, {
+            fontSize: '20px',
+            fill: '#ffffff',
+            stroke: '#000',
+            strokeThickness: 2
+        }).setDepth(1000);
     }
 
     setupCounter() {
@@ -206,121 +291,118 @@ export default class PathScene extends Phaser.Scene {
           callbackScope: this,
           loop: true,
         });
-      }
+  
+    }
+
+    handlePlacementClick(x, y) {
+        if (this.selectedTowerData) {
+            const { texture, range, damage, attackRate, cost } = this.selectedTowerData;
+            if (this.playerMoney >= cost) {
+                this.playerMoney -= cost;
+                this.updateMoneyDisplay();
+                const newTower = new Tower(this, x, y, texture, range, damage, attackRate, cost, this.enemies);
+                newTower.setScale(0.07);
+                newTower.setDepth(2); // Ajout de cette ligne pour définir la profondeur de la tour
+                this.towers.add(newTower);
+                this.selectedTowerData = null;
+                console.log(`Tour placée ! Argent restant: ${this.playerMoney}`);
+            } else {
+                console.log("Pas assez d'argent pour placer cette tour.");
+                // Optionnellement, afficher un message à l'utilisateur
+            }
+        } else {
+            console.log('Aucune tour sélectionnée pour le placement.');
+        }
+    }
+
+    handleEnemyDied(enemy) {
+        const reward = enemy.reward || 10; // Récompense par défaut de 10 pièces
+        this.playerMoney += reward;
+        this.updateMoneyDisplay();
+        console.log(`Ennemi éliminé, argent gagné: ${reward}. Argent total: ${this.playerMoney}`);
+    }
+
+    updateMoneyDisplay() {
+        this.moneyText.setText(`Argent: ${this.playerMoney}`);
+    }
+
+    createLifeDisplay() {
+        const lifeStartX = 730;
+        const lifeStartY = 40;
+        const lifeSpacingX = 100;
+        const lifeSpacingY = 50;
+        const rows = Math.ceil(INITIAL_PLAYER_LIFE / 3);
+        this.lifeSprites = [];
+        let lifeIndex = 0;
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (lifeIndex < INITIAL_PLAYER_LIFE) {
+                    const x = lifeStartX + j * lifeSpacingX;
+                    const y = lifeStartY + i * lifeSpacingY;
+                    const lifeSprite = this.add.image(x, y, 'lifeFull').setOrigin(0, 0.5).setDepth(1000).setScale(0.04);
+                    this.lifeSprites.push(lifeSprite);
+                    lifeIndex++;
+                }
+            }
+        }
+    }
 
     createPath() {
         const gameWidth = this.scale.width;
         const gameHeight = this.scale.height;
-        const startX = 540; 
-        // *** MODIFICATION startY ***
-        const startY = gameHeight * 0.82; // Modifié de 0.85 à 0.82
-        // *** FIN MODIFICATION startY ***
+        const startX = 540;
+        const startY = gameHeight * 0.82;
         const endX = 460;
         const endY = gameHeight * 0.23;
-
         const path = new Phaser.Curves.Path(startX, startY);
-        // Ajoute les segments du chemin
         path.lineTo(540, 1850);
         path.lineTo(330, 1850);
         path.lineTo(330, 1320);
         path.lineTo(750, 1320);
         path.lineTo(730, 880);
         path.lineTo(460, 880);
-        path.lineTo(endX, endY); // Segment final vers la fin
-
+        path.lineTo(endX, endY);
         return path;
     }
 
-    /**
-     * Génère une liste (file d'attente) d'objets décrivant les ennemis à spawner.
-     * @param {number} numberOfEnemies Le nombre total d'ennemis pour cette vague.
-     * @returns {object[]} Un tableau d'objets, chacun décrivant un ennemi.
-     */
     generateEnemyQueue(numberOfEnemies) {
-        // Définit les types d'ennemis possibles avec leurs caractéristiques
         const enemyTypes = [
-            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120 },
-            { type: 'golden',    texture: 'golden',    health: 50, speed: 85 },
-            { type: 'basset',    texture: 'basset',    health: 100, speed: 60 }
+            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120, reward: 10 }, // Ajout de la récompense
+            { type: 'golden', texture: 'golden', health: 50, speed: 85, reward: 20 },
+            { type: 'basset', texture: 'basset', health: 100, speed: 60, reward: 30 }
         ];
         const queue = [];
-
         for (let i = 0; i < numberOfEnemies; i++) {
-            // Choisit un type d'ennemi au hasard
             const randomType = Phaser.Math.RND.pick(enemyTypes);
-            // Ajoute la description de l'ennemi à la file d'attente
-            queue.push({
-                texture: randomType.texture,
-                health: randomType.health,
-                speed: randomType.speed
-                // Note : On ne calcule plus le 'delay' ici, on utilisera un délai fixe entre chaque spawn
-            });
+            queue.push({ texture: randomType.texture, health: randomType.health, speed: randomType.speed, reward: randomType.reward });
         }
         return queue;
     }
 
-    /**
-     * Lance le processus de spawn des ennemis de la file d'attente.
-     * Utilise un timer récursif pour faire apparaître un ennemi après l'autre.
-     * @param {number} delayBetweenSpawns Le temps en ms entre chaque apparition d'ennemi.
-     */
     startEnemySpawnProcess(delayBetweenSpawns) {
-        // S'arrête s'il n'y a plus d'ennemis à spawner ou si le jeu est terminé
         if (this.enemiesToSpawn.length === 0 || this.isGameOver) {
              if (this.spawnTimer) this.spawnTimer.remove(); // Nettoie le timer
              return;
         }
-
-        // Prend le prochain ennemi de la file d'attente
         const nextEnemyData = this.enemiesToSpawn.shift();
-
-        // Fait apparaître cet ennemi immédiatement
-        this.spawnSingleEnemy(nextEnemyData.texture, nextEnemyData.health, nextEnemyData.speed);
-
-        // Planifie le spawn du *prochain* ennemi après le délai spécifié
-        // Utilisation d'un timer qui s'appelle lui-même (récursif)
+        this.spawnSingleEnemy(nextEnemyData.texture, nextEnemyData.health, nextEnemyData.speed, nextEnemyData.reward); // Passe la récompense
         this.spawnTimer = this.time.delayedCall(delayBetweenSpawns, () => {
-            this.startEnemySpawnProcess(delayBetweenSpawns); // Relance la fonction pour le suivant
+            this.startEnemySpawnProcess(delayBetweenSpawns);
         }, [], this);
     }
 
-    /**
-     * Crée et configure une instance d'un ennemi.
-     * @param {string} texture Clé de la texture de l'ennemi.
-     * @param {number} health Points de vie initiaux.
-     * @param {number} speed Vitesse de déplacement.
-     */
-    spawnSingleEnemy(texture, health, speed) {
-        // Utilise la méthode create du groupe, qui instancie Enemy grâce à `classType`
-        // La position (0,0) est temporaire, setPath la corrigera.
+    spawnSingleEnemy(texture, health, speed, reward) {
         const enemy = this.enemies.create(0, 0, texture);
-
-        // Configure les propriétés spécifiques de l'ennemi créé
-        // (car `create` ne passe pas d'arguments au constructeur par défaut)
         enemy.health = health;
         enemy.maxHealth = health;
         enemy.moveSpeed = speed;
-        enemy.setScale(0.05); // Applique l'échelle souhaitée
-
-        // Assigne le chemin à suivre à l'ennemi (ce qui le positionne aussi au départ)
+        enemy.setScale(0.05);
         enemy.setPath(this.path);
-
+        enemy.reward = reward; // Assigner la récompense à l'ennemi
     }
 
-    /**
-     * Gère ce qui se passe quand un ennemi atteint la fin du chemin.
-     * @param {Enemy} enemy L'instance de l'ennemi qui a atteint la fin.
-     */
     handleEnemyReachedEnd(enemy) {
-        // Ignore si le jeu est fini ou si l'ennemi n'est plus valide/actif
-        console.log(this.playerLife);
-        console.log(enemy);
-        if (this.isGameOver || !enemy || !enemy.active) {
-            return;
-        }
-
-
-        // 2. Diminuer la vie (seulement si > 0)
+        if (this.isGameOver || !enemy || !enemy.active) return;
         if (this.playerLife > 0) {
             this.playerLife -= 1; // Diminue la variable de vie
 
@@ -351,27 +433,9 @@ export default class PathScene extends Phaser.Scene {
     }
 
     update(time, delta) {
-        // Ne fait rien si le jeu est terminé
-        if (this.isGameOver) {
-            return;
-        }
-
-        // --- Dessin du chemin (pour le debug uniquement) ---
-        this.graphics.clear(); // Nettoie les dessins précédents
-        // Décommenter les lignes suivantes pour voir le chemin en blanc
+        if (this.isGameOver) return;
+        // this.graphics.clear();
         // this.graphics.lineStyle(2, 0xffffff, 1);
         // this.path.draw(this.graphics);
-
-        // --- Mise à jour des ennemis ---
-        // Est gérée automatiquement par le groupe grâce à `runChildUpdate: true`
-        // Pas besoin d'une boucle ici :
-        // // this.enemies.getChildren().forEach(enemy => {
-        // //    if (enemy.active) enemy.update(time, delta);
-        // // });
-
-        // --- Autre logique de mise à jour ---
-        // - Vérifier si la vague est terminée (enemies.getLength() === 0 && enemiesToSpawn.length === 0) ?
-        // - Lancer la vague suivante ?
-        // - Gérer les actions des tours (viser, tirer) ?
     }
 }
