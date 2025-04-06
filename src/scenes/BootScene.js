@@ -13,9 +13,9 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-        console.log('BootScene: create - Starting MainGameScene');
+        console.log('BootScene: create - Starting Home Page Scene');
         // Une fois les assets minimes chargés (ou immédiatement si pas d'écran de chargement),
         // on lance la scène principale du jeu.
-        this.scene.start('PathScene');
+        this.scene.start('HomePageScene'); // Remplacez par 'HomePageScene' si nécessaire
     }
 }

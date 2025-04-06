@@ -34,6 +34,7 @@ export default class PathScene extends Phaser.Scene {
 
     create() {
         // --- Mise en place du fond ---
+        // --- Fond ---
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
         // Optionnel : Ajuster la taille du fond à l'écran
         // bg.setDisplaySize(this.scale.width, this.scale.height);
