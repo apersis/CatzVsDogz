@@ -126,9 +126,9 @@ export default class PathScene extends Phaser.Scene {
     generateEnemyQueue(numberOfEnemies) {
         // Définit les types d'ennemis possibles avec leurs caractéristiques
         const enemyTypes = [
-            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 520 },
-            { type: 'golden',    texture: 'golden',    health: 50, speed: 490 },
-            { type: 'basset',    texture: 'basset',    health: 100, speed: 460 }
+            { type: 'chihuahua', texture: 'chihuahua', health: 30, speed: 120 },
+            { type: 'golden',    texture: 'golden',    health: 50, speed: 85 },
+            { type: 'basset',    texture: 'basset',    health: 100, speed: 60 }
         ];
         const queue = [];
 
