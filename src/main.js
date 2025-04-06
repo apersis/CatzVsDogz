@@ -7,6 +7,7 @@ import HomePageScene from "./scenes/HomePageScene.js";
 import SettingsScene from "./scenes/SettingsScene.js";
 import CreditsScene from "./scenes/CreditScene.js";
 import PianoScene from "./scenes/PianoScene.js";
+import GameOverScene from "./scenes/GameOverScene.js";
 
 // Dimensions cibles pour un format mobile portrait (ex: ~iPhone 12/13 ratio)
 // Adaptez selon vos besoins (ex: 540x960 pour du 9:16 paysage)
@@ -38,6 +39,7 @@ const config = {
     SettingsScene,
     CreditsScene,
     PianoScene,
+    GameOverScene,
   ],
 };
 

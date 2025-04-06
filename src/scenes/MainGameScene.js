@@ -16,11 +16,9 @@ export default class MainGameScene extends Phaser.Scene {
     // this.load.image('background', 'assets/images/background.png');
     // this.load.image('towerPlaceholder', 'assets/images/tower.png');
     // this.load.spritesheet('enemyWalk', 'assets/sprites/enemy_walk.png', { frameWidth: 32, frameHeight: 32 });
-    console.log("MainGameScene: preload");
   }
 
   create() {
-    console.log("MainGameScene: create");
     // Mettre en place les éléments initiaux du jeu
 
     // 1. Fond (simple couleur pour l'instant)
