@@ -6,83 +6,84 @@ export default class HomePageScene extends Phaser.Scene {
     super("HomePageScene"); // <-- Correction de la clé de la scène
   }
 
-  preload() {
-    this.load.image("background", "assets/backgroundLandingPage.png");
-    this.load.image("playBtn", "assets/play.png");
-    this.load.image("creditsBtn", "assets/credits.png");
-    this.load.image("settingsBtn", "assets/settings.png");
-    this.load.image("playBerliozBtn", "assets/playWithBerlioz.png");
-    this.load.audio("backgroundMusic", "assets/Mio Mao.mp3");
-    console.log("HomePageScene: preload");
-  }
+    preload() {
+        this.load.image('background', 'assets/backgroundLandingPage.png');
+        this.load.image('catHome', 'assets/catHome.png');
+
+        this.load.image('playBtn', 'assets/play.png');
+        this.load.image('creditsBtn', 'assets/credits.png');
+        this.load.image('settingsBtn', 'assets/settings.png');
+        this.load.image('playBerliozBtn', 'assets/playWithBerlioz.png');
+        console.log('HomePageScene: preload');
+    }
 
   create() {
     console.log("HomePageScene: create");
 
     // Ajout du background
-    const bg = this.add
-      .image(this.cameras.main.centerX, this.cameras.main.centerY, "background")
-      .setOrigin(0.5);
-
-    // Ajustement de la taille
-    const scaleX = this.cameras.main.width / bg.width;
-    const scaleY = this.cameras.main.height / bg.height;
-    const scale = Math.max(scaleX, scaleY);
+    const bg = this.add.image(this.cameras.main.centerX, this.cameras.main.centerY, "background")
+        .setOrigin(0.5);
+    const scale = Math.max(
+        this.cameras.main.width / bg.width,
+        this.cameras.main.height / bg.height
+    );
     bg.setScale(scale).setScrollFactor(0);
 
-    this.createButton("playBtn", 0.5, 0.4);
-    this.createButton("playBerliozBtn", 0.5, 0.55);
-    this.createButton("settingsBtn", 0.5, 0.7);
-    this.createButton("creditsBtn", 0.5, 0.85);
-  }
+    // Image du chat
+    const catHome = this.add.image(this.cameras.main.centerX, this.cameras.main.centerY * 0.85, "catHome")
+        .setOrigin(0.5);
+    catHome.setScale(Math.min(
+        (this.cameras.main.width * 1.4) / catHome.width,
+        (this.cameras.main.height * 0.8) / catHome.height
+    ));
 
-  createButton(texture, xPercent, yPercent) {
-    const btn = this.add
-      .image(
-        this.cameras.main.width * xPercent,
-        this.cameras.main.height * yPercent,
-        texture
-      )
-      .setOrigin(0.5);
+    // Configuration des boutons
+    const buttonsConfig = [
+        { texture: "playBtn", yPos: 0.5, scaleMultiplier: 1.0 },
+        { texture: "playBerliozBtn", yPos: 0.62, scaleMultiplier: 1.5 }, // 15% plus grand
+        { texture: "settingsBtn", yPos: 0.72, scaleMultiplier: 1.0 },
+        { texture: "creditsBtn", yPos: 0.82, scaleMultiplier: 1.0 }
+    ];
 
-    // Ajustement de la taille du bouton
-    const btnScale = Math.min(
-      (this.cameras.main.width * 0.7) / btn.width,
-      (this.cameras.main.height * 0.15) / btn.height
-    );
-    btn.setScale(btnScale);
+    buttonsConfig.forEach(btnConfig => {
+        const btn = this.add.image(
+            this.cameras.main.width * 0.5,
+            this.cameras.main.height * btnConfig.yPos,
+            btnConfig.texture
+        ).setOrigin(0.5);
 
-    // Interaction avec le bouton
-    btn.setInteractive({ useHandCursor: true });
+        // Calcul de la taille de base
+        const baseScale = Math.min(
+            (this.cameras.main.width * 0.65) / btn.width,
+            (this.cameras.main.height * 0.1) / btn.height
+        );
 
-    btn.on("pointerover", () => {
-      btn.setScale(btnScale * 1.05);
+        // Application du multiplicateur de taille
+        btn.setScale(baseScale * btnConfig.scaleMultiplier);
+
+        // Interaction (inchangé)
+        btn.setInteractive({ useHandCursor: true });
+        btn.on("pointerover", () => btn.setScale(baseScale * btnConfig.scaleMultiplier * 1.05));
+        btn.on("pointerout", () => btn.setScale(baseScale * btnConfig.scaleMultiplier));
+        btn.on("pointerdown", () => this.handleButtonClick(btnConfig.texture));
     });
+}
 
-    btn.on("pointerout", () => {
-      btn.setScale(btnScale);
-    });
+handleButtonClick(texture) {
+    console.log(texture + " clicked");
+    
+    const sceneMap = {
+        "playBtn": "PathScene",
+        "playBerliozBtn": "PianoScene",
+        "settingsBtn": "SettingsScene",
+        "creditsBtn": "CreditScene"
+    };
 
-    btn.on("pointerdown", () => {
-      // Vous pouvez ajouter ici les actions pour chaque bouton
-      console.log(texture + " clicked");
-
-      // Exemple pour le bouton Play :
-      if (texture === "playBtn") {
-        this.scene.start("PathScene");
-        this.sound.play("backgroundMusic", { loop: true });
-      }
-      if (texture === "playBerliozBtn") {
-        this.scene.start("PianoScene");
-      }
-      if (texture === "settingsBtn") {
-        this.scene.start("SettingsScene");
-      }
-      if (texture === "creditsBtn") {
-        this.scene.start("CreditScene");
-      }
-    });
-
-    return btn;
-  }
+    if (sceneMap[texture]) {
+        this.scene.start(sceneMap[texture]);
+        if (texture === "playBtn") {
+            this.sound.play("backgroundMusic", { loop: true });
+        }
+    }
+}
 }
