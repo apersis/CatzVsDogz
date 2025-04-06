@@ -14,12 +14,38 @@ export default class PathScene extends Phaser.Scene {
         // Renommer la clé si vous voulez, mais gardons 'golden' pour l'instant
         // Si vous renommez ici, changez aussi dans create()
         this.load.image('golden', 'assets/golden.png');
+        this.load.image('originTower', 'assets/tower1.png')
+            
+        // Ajoutez cette ligne :
+        // 'backgroundKey' est la clé unique que vous choisissez.
+        // 'assets/images/background_td.png' est le chemin depuis le dossier 'public'.
         this.load.image('backgroundKey', 'assets/level1.png');
     }
 
     create() {
         // --- Fond ---
         let bg = this.add.image(0, 0, 'backgroundKey').setOrigin(0, 0);
+        let tower = this.add.image(550, 775, 'originTower')
+        tower.setScale(0.07)
+        let towerDeux = this.add.image(340, 775, 'originTower')
+        towerDeux.setScale(0.07)
+        let towerTrois = this.add.image(550, 820, 'originTower')
+        towerTrois.setScale(0.07)
+        let towerQuatre = this.add.image(750, 820, 'originTower')
+        towerQuatre.setScale(0.07)
+        let towerCinq = this.add.image(650, 900, 'originTower')
+        towerCinq.setScale(0.07)
+        let towerSix = this.add.image(340, 950, 'originTower')
+        towerSix.setScale(0.07)
+        let towerSept = this.add.image(550, 950, 'originTower')
+        towerSept.setScale(0.07)
+        let towerHuit = this.add.image(340, 1000, 'originTower')
+        towerHuit.setScale(0.07)
+        let towerNeuf = this.add.image(260, 1000, 'originTower')
+        towerNeuf.setScale(0.07)
+        let towerDix = this.add.image(340, 1200, 'originTower')
+        towerDix.setScale(0.07)
+
         // bg.setDisplaySize(this.scale.width, this.scale.height);
 
         // --- Texte de Vie ---
