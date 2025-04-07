@@ -67,7 +67,7 @@ export default class PathScene extends Phaser.Scene {
     this.startEnemySpawnProcess(ENEMY_SPAWN_DELAY);
 
     // Interface
-    this.createButton("retourBtn", 0.2, 0.96);
+    this.createButton("retourBtn", 0.15, 0.96);
     this.createButton("pauseBtn", 0.75, 0.96); // Ajout du bouton pause
     this.createButton("lancerBtn", 0.9, 0.96); // Ajout du bouton play
     this.setupCounter();
