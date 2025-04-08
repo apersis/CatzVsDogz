@@ -18,7 +18,7 @@ Nous étions une équipe de 6 personnes passionnées pour ce défi :
 * **[Johan Mons](https://github.com/JohanBZH)** - Développeur
 * **[Tom Le Roux](https://github.com/LeRouxTom)** - Développeur
 * **[Eloïc Lesellier](https://github.com/apersis)** - Développeur
-* **Morgane Boileau** - Illustratrice / Artiste 2D
+* **[Morgane Boileau](https://www.morganeboileau.bzh/)** - Illustratrice / Artiste 2D
 ## Technologies Utilisées
 
 * **Moteur/Framework :** Phaser 3 ([https://phaser.io/](https://phaser.io/))
