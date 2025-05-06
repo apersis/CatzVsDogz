@@ -44,6 +44,9 @@ export default class PathScene extends Phaser.Scene {
         this.load.image('felintion', 'assets/felintion.png');
         this.load.image('langue_rapeuse', 'assets/langue_rapeuse.png');
         this.load.image('towerPlace', 'assets/emplacementTower.png')
+        this.load.image('1thon', 'assets/1thon.png')
+        this.load.image('2thon', 'assets/2thon.png')
+        this.load.image('3thon', 'assets/3thon.png')
         if (!this.textures.exists('waterParticle')) {
             const graphics = this.make.graphics({ x: 0, y: 0, add: false });
             graphics.fillStyle(0x0398fc, 0.8); // Bleu de base avec transparence
@@ -243,12 +246,13 @@ export default class PathScene extends Phaser.Scene {
 
         
         // --- Affichage de l'argent du joueur ---
-        this.moneyText = this.add.text(20, this.scale.height - 30, `Argent: ${this.playerMoney}`, {
-            fontSize: '20px',
-            fill: '#ffffff',
+        this.moneyText = this.add.text(120, 180, this.playerMoney, {
+            fontSize: '50px',
+            fill: '#000',
             stroke: '#000',
             strokeThickness: 2
         }).setDepth(1000);
+        this.moneySprite = this.add.image(100, 80, '1thon').setOrigin(0, 0.5).setDepth(1000).setScale(0.05);
     }
 
     setupCounter() {
@@ -305,7 +309,14 @@ export default class PathScene extends Phaser.Scene {
     }
 
     updateMoneyDisplay() {
-        this.moneyText.setText(`Argent: ${this.playerMoney}`);
+        this.moneyText.setText(this.playerMoney);
+        if(this.playerMoney < 500){
+            this.moneySprite.setTexture('1thon');
+        }else if(this.playerMoney < 1000){
+            this.moneySprite.setTexture('2thon');
+        }else{
+            this.moneySprite.setTexture('3thon');
+        }
     }
 
     createLifeDisplay() {
