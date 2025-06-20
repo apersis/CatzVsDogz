@@ -40,5 +40,5 @@ Si vous souhaitez exécuter le projet localement :
 5.  Ouvrez votre navigateur à l'adresse indiquée (généralement `http://localhost:5173`).
 
 <p align="center">
-	<a href="https://github.com/apersis/CatzVsDogz"><img src="https://github.com/apersis/CatzVsDogz/blob/main/miniature.PNG?raw=true" width="500"></a>
+	<a href="https://github.com/apersis/CatzVsDogz"><img src="https://github.com/apersis/CatzVsDogz/blob/main/miniature.png?raw=true" width="500"></a>
 </p>
